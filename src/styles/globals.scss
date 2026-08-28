@@ -1,0 +1,16 @@
+@use 'tokens';
+@use 'reset';
+
+html {
+  font-family: var(--font-family-base);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-base);
+  -webkit-font-smoothing: antialiased;
+}
