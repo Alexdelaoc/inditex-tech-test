@@ -36,6 +36,23 @@ jobs:
 
       - run: pnpm test
 
+      - name: Comprobar secrets
+        run: |
+          fail=
+          for v in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+            val="${!v}"
+            if [ -z "$val" ]; then
+              echo "::error::Falta el secret $v"
+              fail=1
+            else
+              echo "$v presente (${#val} caracteres)"
+            fi
+          done
+          [ -z "$fail" ]
+
+      - name: Comprobar el token y su scope
+        run: pnpm dlx vercel whoami
+
       # Trae del proyecto de Vercel las variables de entorno de producción
       # (API_BASE_URL, API_KEY) para que el build las tenga.
       - name: Configuración de Vercel
