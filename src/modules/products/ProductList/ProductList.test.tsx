@@ -36,6 +36,18 @@ describe('ProductList', () => {
     expect(screen.getByText('909 EUR')).toBeInTheDocument();
   });
 
+  it('renders both entries when two products share the same id', () => {
+    const [first] = products;
+
+    if (!first) {
+      throw new Error('The fixture needs at least one product');
+    }
+
+    render(<ProductList products={[first, { ...first }]} />);
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
+  });
+
   it('renders an empty list when there are no products', () => {
     render(<ProductList products={[]} />);
 

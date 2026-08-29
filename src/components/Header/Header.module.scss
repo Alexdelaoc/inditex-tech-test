@@ -1,0 +1,33 @@
+@use 'breakpoints' as bp;
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.75rem 1rem;
+  background-color: var(--color-background);
+
+  @include bp.from('md') {
+    padding-inline: 2.5rem;
+  }
+
+  @include bp.from('lg') {
+    padding-inline: 6.25rem;
+  }
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+  color: var(--color-text);
+}
+
+.logo {
+  height: auto;
+}
+
+.count {
+  font-size: var(--font-size-sm);
+  line-height: 1;
+}

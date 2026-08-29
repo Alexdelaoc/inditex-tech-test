@@ -1,0 +1,16 @@
+.form {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+}
+
+.results {
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}

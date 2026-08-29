@@ -1,0 +1,19 @@
+@use 'breakpoints' as bp;
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-top: 1.5rem;
+  padding-inline: 1rem;
+
+  @include bp.from('md') {
+    gap: 3rem;
+    padding-top: 3rem;
+    padding-inline: 2.5rem;
+  }
+
+  @include bp.from('lg') {
+    padding-inline: 6.25rem;
+  }
+}
