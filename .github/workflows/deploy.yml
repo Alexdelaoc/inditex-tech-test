@@ -3,7 +3,6 @@ name: Deploy
 on:
   push:
     branches: [main]
-
 concurrency:
   group: deploy-production
   cancel-in-progress: true
@@ -13,7 +12,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
@@ -35,27 +33,16 @@ jobs:
 
       - run: pnpm test
 
-      - name: Comprobar secrets
-        run: |
-          fail=
-          for v in VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
-            val="${!v}"
-            if [ -z "$val" ]; then
-              echo "::error::Falta el secret $v"
-              fail=1
-            else
-              echo "$v presente (${#val} caracteres)"
-            fi
-          done
-          [ -z "$fail" ]
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@latest
 
       - name: Configuración de Vercel
-        run: pnpm dlx vercel pull --yes --environment=production
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build
-        run: pnpm dlx vercel build --prod
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Desplegar
         run: |
-          url=$(pnpm dlx vercel deploy --prebuilt --prod)
+          url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
           echo "Desplegado en $url" >> "$GITHUB_STEP_SUMMARY"
