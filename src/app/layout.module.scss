@@ -16,4 +16,13 @@
   @include bp.from('lg') {
     padding-inline: 6.25rem;
   }
+
+  > * {
+    animation: fade-in var(--duration-base) var(--easing-standard) both;
+    animation-delay: var(--stagger-step);
+  }
+
+  > * + * {
+    animation-delay: calc(var(--stagger-step) * 2);
+  }
 }

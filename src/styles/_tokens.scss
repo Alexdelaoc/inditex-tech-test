@@ -8,6 +8,7 @@
   --font-size-xl: 1.25rem;
   --font-size-2xl: 2rem;
 
+  --font-weight-light: 300;
   --font-weight-regular: 400;
   --font-weight-bold: 700;
 
@@ -26,6 +27,7 @@
 
   --color-text: var(--color-black);
   --color-text-muted: var(--color-grey-600);
+  --color-text-placeholder: #aaaaaa;
   --color-background: var(--color-white);
   --color-border: var(--color-grey-400);
   --color-surface: var(--color-grey-50);
@@ -44,5 +46,8 @@
   --layout-gutter: var(--spacing-md);
   --header-height: 3.5rem;
 
-  --transition-fast: 150ms ease;
+  --duration-fast: 160ms;
+  --duration-base: 320ms;
+  --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --stagger-step: 120ms;
 }

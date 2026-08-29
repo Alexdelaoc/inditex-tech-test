@@ -6,6 +6,7 @@
   justify-content: space-between;
   padding: 1.75rem 1rem;
   background-color: var(--color-background);
+  animation: fade-in var(--duration-base) var(--easing-standard) both;
 
   @include bp.from('md') {
     padding-inline: 2.5rem;

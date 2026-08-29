@@ -2,8 +2,15 @@ import { ProductList } from '@/modules/products/ProductList/ProductList';
 import { SearchBar } from '@/modules/products/SearchBar/SearchBar';
 import { getProducts } from '@/lib/api/client';
 
-export default async function HomePage() {
-  const products = await getProducts({ limit: 20 });
+const INITIAL_PRODUCTS = 20;
+
+interface HomePageProps {
+  searchParams: Promise<{ search?: string }>;
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const { search } = await searchParams;
+  const products = await getProducts(search ? { search } : { limit: INITIAL_PRODUCTS });
 
   return (
     <>
