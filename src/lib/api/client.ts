@@ -49,20 +49,7 @@ async function request<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
-function uniqueById(products: ProductListItem[]): ProductListItem[] {
-  const seen = new Set<string>();
-
-  return products.filter((product) => {
-    if (seen.has(product.id)) {
-      return false;
-    }
-
-    seen.add(product.id);
-    return true;
-  });
-}
-
-export async function getProducts(params: GetProductsParams = {}): Promise<ProductListItem[]> {
+export function getProducts(params: GetProductsParams = {}): Promise<ProductListItem[]> {
   const { search, limit, offset } = params;
   const query = new URLSearchParams();
 
@@ -80,11 +67,7 @@ export async function getProducts(params: GetProductsParams = {}): Promise<Produ
 
   const queryString = query.toString();
 
-  const products = await request<ProductListItem[]>(
-    `/products${queryString ? `?${queryString}` : ''}`,
-  );
-
-  return uniqueById(products);
+  return request<ProductListItem[]>(`/products${queryString ? `?${queryString}` : ''}`);
 }
 
 export function getProduct(id: string): Promise<Product> {
