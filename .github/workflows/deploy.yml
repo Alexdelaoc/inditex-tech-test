@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
 
-# Si se encadenan varios push, despliega solo el último.
 concurrency:
   group: deploy-production
   cancel-in-progress: true
@@ -50,11 +49,6 @@ jobs:
           done
           [ -z "$fail" ]
 
-      - name: Comprobar el token y su scope
-        run: pnpm dlx vercel whoami
-
-      # Trae del proyecto de Vercel las variables de entorno de producción
-      # (API_BASE_URL, API_KEY) para que el build las tenga.
       - name: Configuración de Vercel
         run: pnpm dlx vercel pull --yes --environment=production
 
