@@ -41,13 +41,16 @@ Los dos modos vienen de serie con el toolchain de Next. `pnpm dev` sirve los ass
 
 ## Cómo está montado
 
-Las páginas son Server Components y piden los datos durante el render en el lado del servidor. El navegador recibe el HTML terminado en lugar de encadenar peticiones al cargar, y las credenciales de la API no salen del servidor en ningún momento.
+Las páginas son Server Components: piden los datos en el servidor y el navegador recibe el HTML terminado, sin que las credenciales de la API salgan de ahí.
 
-Todo lo que sabe hablar con el backend está en `lib/api`. Es el único sitio que conoce la URL, el que añade la cabecera `x-api-key` y el que convierte un fallo HTTP en un `ApiError` que arrastra el código de estado, para que quien lo reciba pueda distinguir un producto inexistente de una caída del servicio. Por encima de esa capa nadie sabe que hay una API detrás: se trabaja con tipos del dominio y ya está.
+`lib/api` es el único sitio que habla con el backend. Pone la cabecera `x-api-key` y convierte los fallos HTTP en un `ApiError` que arrastra el código de estado, para poder distinguir un producto inexistente de una caída del servicio.
 
-La separación entre `components/` y `modules/` no depende de si algo es un componente o no. En `components/` está la interfaz transversal, la que podrías llevarte a otro proyecto sin arrastrar nada detrás, como el `Header` o el `Icon`. En `modules/` está lo que sabe qué es un producto o qué es un carrito, con sus componentes y su lógica en la misma carpeta. El contexto del carrito irá en `modules/cart` junto a su persistencia en `localStorage`, porque nada de eso es un componente y colgarlo de `components/` sería mentir sobre lo que hay dentro.
+El buscador escribe el término en la URL como `?search=` y el servidor devuelve la lista ya filtrada, así que una búsqueda se puede compartir por enlace. Va dentro de un `<form>` real y funciona sin JavaScript, lo que significa que el JavaScript sólo añade el filtrado según escribes. Leer `searchParams` hace que la home pase de prerenderizada a servirse bajo demanda.
 
-Los errores de render se recogen en `app/error.tsx` y las rutas que no existen en `app/not-found.tsx`. El boundary de error muestra un mensaje genérico en lugar del original, y hay un test que lo vigila: si la API contesta con un 401, el texto "Invalid API key" no tiene por qué acabar en la pantalla de nadie.
+En `components/` está la interfaz transversal y en `modules/` lo que conoce el dominio, con sus componentes y su lógica juntos. El criterio no es si algo es un componente, sino si sabe qué es un producto.
+
+`app/error.tsx` y `app/not-found.tsx` recogen los fallos. El de error enseña un mensaje genérico en lugar del original, con un test que lo vigila: un 401 de la API no debería acabar mostrando "Invalid API key" en pantalla.
+
 
 ```
 src/
@@ -58,6 +61,12 @@ src/
 ├── styles/       Tokens en variables CSS, reset y estilos globales
 └── types/        Declaraciones de tipos ambientales
 ```
+
+## La barra de carga
+
+El diseño lleva una barra de 1px bajo la cabecera. Sólo aparece cuando la espera pasa de 150ms y se queda un mínimo en pantalla, así que en local casi nunca se ve: sin esos umbrales, una búsqueda que resuelve en 45ms produce un destello que se lee como un fallo de pintado. Para verla, estrangula la red desde las herramientas del navegador.
+
+Es indeterminada, un segmento que barre de izquierda a derecha, porque no tenemos ninguna medida real del progreso. El prototipo presupone una aplicación que se dibuja en el cliente; aquí el HTML llega con los productos dentro, así que la barra se gana el sitio en las navegaciones y no en la primera carga.
 
 ## Despliegue
 
