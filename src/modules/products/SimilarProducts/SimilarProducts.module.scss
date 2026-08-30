@@ -1,0 +1,33 @@
+@use 'breakpoints' as bp;
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-light);
+  line-height: 1.2;
+  text-transform: capitalize;
+}
+
+.item {
+  flex: none;
+  width: min(21.5rem, 85vw);
+  border: 0.5px solid var(--color-black);
+
+  @include bp.from('md') {
+    width: 23.5625rem;
+  }
+
+  @include bp.from('lg') {
+    width: 21.5rem;
+  }
+
+  & + & {
+    border-left: 0;
+  }
+}

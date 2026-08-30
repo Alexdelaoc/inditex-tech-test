@@ -1,0 +1,16 @@
+@use 'breakpoints' as bp;
+
+.bar {
+  display: flex;
+  padding: var(--spacing-sm) 0;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  line-height: 1.25;
+  text-transform: uppercase;
+}

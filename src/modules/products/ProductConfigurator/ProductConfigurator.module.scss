@@ -1,0 +1,194 @@
+@use 'breakpoints' as bp;
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+
+  @include bp.from('md') {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10.625rem;
+  }
+}
+
+.figure {
+  position: relative;
+  width: 100%;
+  max-width: 24.25rem;
+  aspect-ratio: 260 / 273;
+
+  @include bp.from('md') {
+    flex: 1;
+    max-width: 21.0625rem;
+    aspect-ratio: 337 / 416;
+  }
+
+  @include bp.from('lg') {
+    max-width: 31.875rem;
+    aspect-ratio: 510 / 630;
+  }
+}
+
+.image {
+  object-fit: contain;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  min-width: 0;
+
+  @include bp.from('md') {
+    flex: 1;
+    max-width: 23.75rem;
+  }
+
+  @include bp.from('lg') {
+    gap: 4rem;
+  }
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6875rem;
+}
+
+.name {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-light);
+  line-height: 1.2;
+  text-transform: uppercase;
+
+  @include bp.from('lg') {
+    font-size: 1.5rem;
+  }
+}
+
+.price {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-light);
+  line-height: 1.2;
+
+  @include bp.from('lg') {
+    font-size: 1.25rem;
+  }
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  @include bp.from('lg') {
+    gap: var(--spacing-lg);
+  }
+}
+
+.legend {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  line-height: 1.25;
+  text-transform: uppercase;
+
+  @include bp.from('lg') {
+    font-size: var(--font-size-md);
+  }
+}
+
+.storageOptions {
+  display: flex;
+}
+
+.storage {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg) var(--spacing-xs);
+  border: 1px solid var(--color-grey-400);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  line-height: 1.25;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--easing-standard);
+
+  &:has(:checked) {
+    border-color: var(--color-black);
+  }
+
+  @include bp.from('lg') {
+    font-size: var(--font-size-md);
+  }
+}
+
+.colorOptions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.color {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--color-grey-400);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--easing-standard);
+
+  &:has(:checked) {
+    border-color: var(--color-black);
+  }
+}
+
+.swatch {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.colorPicker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-height: 3.0625rem;
+}
+
+.colorName {
+  margin: 0;
+  transition: opacity var(--duration-fast) var(--easing-standard);
+
+  &:empty {
+    opacity: 0;
+  }
+
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  line-height: 1.25;
+}
+
+.addToCart {
+  padding: 1.25rem 2rem;
+  background-color: var(--color-ink);
+  color: var(--color-white);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  line-height: 1.3333;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition:
+    background-color var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard);
+
+  &:disabled {
+    background-color: var(--color-surface-disabled);
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+  }
+}

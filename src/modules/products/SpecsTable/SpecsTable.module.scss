@@ -1,0 +1,53 @@
+@use 'breakpoints' as bp;
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: var(--font-weight-light);
+  line-height: 1.2;
+  text-transform: capitalize;
+}
+
+.rows {
+  margin: 0;
+  border-top: 0.5px solid var(--color-black);
+}
+
+.row {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding-block: var(--spacing-md);
+  border-bottom: 0.5px solid var(--color-black);
+
+  @include bp.from('md') {
+    gap: 3rem;
+  }
+}
+
+.label,
+.data {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  line-height: 1.25;
+}
+
+.label {
+  flex: 0 1 9.375rem;
+  text-transform: uppercase;
+
+  @include bp.from('md') {
+    flex-basis: 18.75rem;
+  }
+}
+
+.data {
+  flex: 1;
+  min-width: 0;
+}
