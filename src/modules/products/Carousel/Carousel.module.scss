@@ -14,21 +14,16 @@
 .track {
   display: flex;
   overflow-x: auto;
-  scroll-snap-type: x mandatory;
   scrollbar-width: none;
-
-  > * {
-    scroll-snap-align: start;
-  }
+  margin-inline: calc(50% - 50vw);
+  padding-inline: calc(50vw - 50%);
+  scroll-snap-type: none;
 
   &::-webkit-scrollbar {
     display: none;
   }
 
   @include bp.from('lg') {
-    margin-inline: calc(50% - 50vw);
-    padding-inline: calc(50vw - 50%);
-    scroll-snap-type: none;
   }
 }
 

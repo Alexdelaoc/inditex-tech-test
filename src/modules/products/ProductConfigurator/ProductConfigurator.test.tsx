@@ -1,9 +1,18 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { CartProvider } from '@/modules/cart/CartProvider';
+import { readCart } from '@/modules/cart/cartStorage';
+
 import { ProductConfigurator } from './ProductConfigurator';
 
 import type { Product } from '@/lib/api/types';
+
+const push = jest.fn();
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: (url: string) => push(url) }),
+}));
 
 const product: Product = {
   id: 'SMG-S24U',
@@ -41,6 +50,11 @@ function setup() {
 }
 
 describe('ProductConfigurator', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    push.mockClear();
+  });
+
   it('shows the name as the heading of the page', () => {
     setup();
 
@@ -106,6 +120,46 @@ describe('ProductConfigurator', () => {
     await user.hover(violet);
     await user.unhover(violet);
     expect(screen.getByText('Titanium Black')).toBeInTheDocument();
+  });
+
+  it('adds the chosen configuration to the cart', async () => {
+    const user = userEvent.setup();
+    render(
+      <CartProvider>
+        <ProductConfigurator product={product} />
+      </CartProvider>,
+    );
+
+    await user.click(screen.getByRole('radio', { name: '512GB' }));
+    await user.click(screen.getByRole('radio', { name: 'Titanium Violet' }));
+    await user.click(screen.getByRole('button', { name: /add/i }));
+
+    expect(readCart()).toEqual([
+      expect.objectContaining({
+        productId: 'SMG-S24U',
+        brand: 'Samsung',
+        name: 'Galaxy S24 Ultra',
+        imageUrl: 'https://example.com/violet.jpg',
+        color: 'Titanium Violet',
+        storage: '512GB',
+        price: 1279,
+      }),
+    ]);
+  });
+
+  it('opens the cart once the product has been added', async () => {
+    const user = userEvent.setup();
+    render(
+      <CartProvider>
+        <ProductConfigurator product={product} />
+      </CartProvider>,
+    );
+
+    await user.click(screen.getByRole('radio', { name: '512GB' }));
+    await user.click(screen.getByRole('radio', { name: 'Titanium Black' }));
+    await user.click(screen.getByRole('button', { name: /add/i }));
+
+    expect(push).toHaveBeenCalledWith('/cart');
   });
 
   it('groups each set of options under its own label', () => {

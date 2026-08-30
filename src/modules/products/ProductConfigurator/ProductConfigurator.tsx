@@ -1,7 +1,10 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+
+import { useCart } from '@/modules/cart/CartProvider';
 
 import styles from './ProductConfigurator.module.scss';
 
@@ -10,11 +13,31 @@ import type { ColorOption, Product, StorageOption } from '@/lib/api/types';
 const SIZES = '(min-width: 64rem) 510px, (min-width: 48rem) 337px, 100vw';
 
 export function ProductConfigurator({ product }: { product: Product }) {
+  const { addLine } = useCart();
+  const router = useRouter();
   const [storage, setStorage] = useState<StorageOption>();
   const [color, setColor] = useState<ColorOption>();
   const [previewedColor, setPreviewedColor] = useState<ColorOption>();
   const shownColor = color ?? product.colorOptions[0];
   const namedColor = previewedColor ?? color;
+
+  function addToCart() {
+    if (!storage || !color) {
+      return;
+    }
+
+    addLine({
+      productId: product.id,
+      brand: product.brand,
+      name: product.name,
+      imageUrl: color.imageUrl,
+      color: color.name,
+      storage: storage.capacity,
+      price: storage.price,
+    });
+
+    router.push('/cart');
+  }
 
   return (
     <div className={styles.detail}>
@@ -92,7 +115,12 @@ export function ProductConfigurator({ product }: { product: Product }) {
           </div>
         </div>
 
-        <button type="button" className={styles.addToCart} disabled={!storage || !color}>
+        <button
+          type="button"
+          className={styles.addToCart}
+          disabled={!storage || !color}
+          onClick={addToCart}
+        >
           Add
         </button>
       </div>
