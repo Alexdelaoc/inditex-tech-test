@@ -92,14 +92,6 @@ describe('products api client', () => {
       );
     });
 
-    it('drops repeated ids keeping the first occurrence', async () => {
-      const repeated: ProductListItem = { ...listItem };
-      const other: ProductListItem = { ...listItem, id: '2', name: 'Galaxy S21' };
-      fetchMock.mockResolvedValue(jsonResponse([listItem, repeated, other]));
-
-      await expect(getProducts()).resolves.toEqual([listItem, other]);
-    });
-
     it('omits an empty search term', async () => {
       fetchMock.mockResolvedValue(jsonResponse([]));
 

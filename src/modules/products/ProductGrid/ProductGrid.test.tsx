@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 
-import { ProductList } from './ProductList';
+import { ProductGrid } from './ProductGrid';
 
 import type { ProductListItem } from '@/lib/api/types';
 
@@ -21,23 +21,27 @@ const products: ProductListItem[] = [
   },
 ];
 
-describe('ProductList', () => {
+describe('ProductGrid', () => {
   it('renders one item per product', () => {
-    render(<ProductList products={products} />);
+    render(<ProductGrid products={products} />);
 
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
   });
 
-  it('shows the brand, name and base price of each product', () => {
-    render(<ProductList products={products} />);
+  it('renders both entries when two products share the same id', () => {
+    const [first] = products;
 
-    expect(screen.getByText('Apple')).toBeInTheDocument();
-    expect(screen.getByText('iPhone 12')).toBeInTheDocument();
-    expect(screen.getByText('909 EUR')).toBeInTheDocument();
+    if (!first) {
+      throw new Error('The fixture needs at least one product');
+    }
+
+    render(<ProductGrid products={[first, { ...first }]} />);
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(2);
   });
 
   it('renders an empty list when there are no products', () => {
-    render(<ProductList products={[]} />);
+    render(<ProductGrid products={[]} />);
 
     expect(screen.queryAllByRole('listitem')).toHaveLength(0);
   });

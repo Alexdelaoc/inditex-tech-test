@@ -1,0 +1,42 @@
+@use 'sass:math';
+
+$bar-fraction: 0.25;
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(math.div(100%, $bar-fraction));
+  }
+}
+
+.track {
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--easing-standard);
+
+  &[data-loading='true'] {
+    opacity: 1;
+    transition: opacity var(--duration-fast) var(--easing-standard);
+  }
+}
+
+.bar {
+  width: $bar-fraction * 100%;
+  height: 100%;
+  background-color: var(--color-black);
+  transform: translateX(-100%);
+
+  .track[data-loading='true'] & {
+    animation: sweep 1.1s var(--easing-standard) infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      width: 100%;
+      transform: none;
+      animation: none;
+    }
+  }
+}
