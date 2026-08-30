@@ -1,4 +1,6 @@
 import { Header } from '@/components/Header/Header';
+import { NavigationProgress } from '@/components/Navigation/NavigationProgress';
+import { NavigationProvider } from '@/components/Navigation/NavigationProvider';
 
 import styles from './layout.module.scss';
 
@@ -16,8 +18,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <Header />
-        <main className={styles.main}>{children}</main>
+        <NavigationProvider>
+          <Header />
+          <NavigationProgress />
+          <main className={styles.main}>{children}</main>
+        </NavigationProvider>
       </body>
     </html>
   );

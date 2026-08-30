@@ -19,10 +19,11 @@
 
   > * {
     animation: fade-in var(--duration-base) var(--easing-standard) both;
-    animation-delay: var(--stagger-step);
   }
 
-  > * + * {
-    animation-delay: calc(var(--stagger-step) * 2);
+  @for $position from 1 through 4 {
+    > *:nth-child(#{$position}) {
+      animation-delay: calc(var(--stagger-step) * #{$position});
+    }
   }
 }

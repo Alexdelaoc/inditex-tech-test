@@ -1,9 +1,10 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { Icon } from '@/components/Icon/Icon';
+import { useNavigation } from '@/components/Navigation/NavigationProvider';
 
 import styles from './SearchBar.module.scss';
 
@@ -22,7 +23,7 @@ function hrefFor(term: string) {
 }
 
 export function SearchBar({ resultsCount }: SearchBarProps) {
-  const router = useRouter();
+  const { navigate } = useNavigation();
   const searchParams = useSearchParams();
   const termInUrl = searchParams.get('search') ?? '';
   const [term, setTerm] = useState(termInUrl);
@@ -32,14 +33,14 @@ export function SearchBar({ resultsCount }: SearchBarProps) {
       return;
     }
 
-    const timeout = setTimeout(() => router.replace(hrefFor(term)), DEBOUNCE_MS);
+    const timeout = setTimeout(() => navigate(hrefFor(term)), DEBOUNCE_MS);
 
     return () => clearTimeout(timeout);
-  }, [term, termInUrl, router]);
+  }, [term, termInUrl, navigate]);
 
   function handleSubmit(event: SyntheticEvent) {
     event.preventDefault();
-    router.replace(hrefFor(term));
+    navigate(hrefFor(term));
   }
 
   return (

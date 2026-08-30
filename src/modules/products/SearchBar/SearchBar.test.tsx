@@ -1,5 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
+import { NavigationProvider } from '@/components/Navigation/NavigationProvider';
 
 import { SearchBar } from './SearchBar';
 
@@ -13,7 +15,11 @@ jest.mock('next/navigation', () => ({
 
 function setup() {
   const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
-  render(<SearchBar resultsCount={0} />);
+  render(
+    <NavigationProvider>
+      <SearchBar resultsCount={0} />
+    </NavigationProvider>,
+  );
 
   return user;
 }
@@ -49,14 +55,22 @@ describe('SearchBar', () => {
 
   it('shows how many results are being displayed', () => {
     jest.useRealTimers();
-    render(<SearchBar resultsCount={19} />);
+    render(
+      <NavigationProvider>
+        <SearchBar resultsCount={19} />
+      </NavigationProvider>,
+    );
 
     expect(screen.getByText('19 results')).toBeInTheDocument();
   });
 
   it('keeps the singular in agreement when there is a single result', () => {
     jest.useRealTimers();
-    render(<SearchBar resultsCount={1} />);
+    render(
+      <NavigationProvider>
+        <SearchBar resultsCount={1} />
+      </NavigationProvider>,
+    );
 
     expect(screen.getByText('1 result')).toBeInTheDocument();
   });
@@ -74,7 +88,7 @@ describe('SearchBar', () => {
     await user.type(screen.getByRole('searchbox'), 'samsung');
     expect(replace).not.toHaveBeenCalled();
 
-    jest.runAllTimers();
+    act(() => jest.runAllTimers());
 
     expect(replace).toHaveBeenCalledWith('/?search=samsung');
   });
@@ -84,7 +98,7 @@ describe('SearchBar', () => {
     const user = setup();
 
     await user.clear(screen.getByRole('searchbox'));
-    jest.runAllTimers();
+    act(() => jest.runAllTimers());
 
     expect(replace).toHaveBeenCalledWith('/');
   });
@@ -100,7 +114,7 @@ describe('SearchBar', () => {
     const user = setup();
 
     await user.click(screen.getByRole('button', { name: /clear/i }));
-    jest.runAllTimers();
+    act(() => jest.runAllTimers());
 
     expect(screen.getByRole('searchbox')).toHaveValue('');
     expect(replace).toHaveBeenCalledWith('/');
