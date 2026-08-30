@@ -51,7 +51,6 @@ En `components/` está la interfaz transversal y en `modules/` lo que conoce el 
 
 `app/error.tsx` y `app/not-found.tsx` recogen los fallos. El de error enseña un mensaje genérico en lugar del original, con un test que lo vigila: un 401 de la API no debería acabar mostrando "Invalid API key" en pantalla.
 
-
 ```
 src/
 ├── app/          Rutas del App Router: layouts, páginas y límites de error

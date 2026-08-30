@@ -1,0 +1,95 @@
+@use 'breakpoints' as bp;
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md);
+  border: 0.5px solid var(--color-black);
+  aspect-ratio: 361 / 344;
+  isolation: isolate;
+
+  @include bp.from('md') {
+    aspect-ratio: 1;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--color-black);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform var(--duration-base) var(--easing-standard);
+  }
+
+  &:hover::before,
+  &:focus-visible::before {
+    transform: scaleY(1);
+  }
+
+  &:hover,
+  &:focus-visible {
+    .name,
+    .price {
+      color: var(--color-white);
+    }
+
+    .brand {
+      color: var(--color-grey-400);
+    }
+  }
+}
+
+.figure {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.image {
+  object-fit: contain;
+}
+
+.info {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-xs);
+}
+
+.identity {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--spacing-2xs);
+  min-width: 0;
+}
+
+.brand,
+.name,
+.price {
+  font-weight: var(--font-weight-light);
+  transition: color var(--duration-base) var(--easing-standard);
+}
+
+.brand {
+  font-size: var(--font-size-xs);
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+
+.name {
+  font-size: var(--font-size-sm);
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.price {
+  font-size: var(--font-size-sm);
+  line-height: 1.25;
+  text-align: right;
+  white-space: nowrap;
+}

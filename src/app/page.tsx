@@ -1,4 +1,4 @@
-import { ProductList } from '@/modules/products/ProductList/ProductList';
+import { ProductGrid } from '@/modules/products/ProductGrid/ProductGrid';
 import { SearchBar } from '@/modules/products/SearchBar/SearchBar';
 import { getProducts } from '@/lib/api/client';
 
@@ -15,7 +15,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   return (
     <>
       <SearchBar resultsCount={products.length} />
-      <ProductList products={products} />
+      <ProductGrid products={products} />
     </>
   );
 }

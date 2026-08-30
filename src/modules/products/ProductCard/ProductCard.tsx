@@ -1,0 +1,26 @@
+import Image from 'next/image';
+import Link from 'next/link';
+
+import styles from './ProductCard.module.scss';
+
+import type { ProductListItem } from '@/lib/api/types';
+
+const SIZES = '(min-width: 64rem) 25vw, (min-width: 48rem) 50vw, 100vw';
+
+export function ProductCard({ product }: { product: ProductListItem }) {
+  return (
+    <Link href={`/product/${encodeURIComponent(product.id)}`} className={styles.card}>
+      <span className={styles.figure}>
+        <Image src={product.imageUrl} alt="" fill sizes={SIZES} className={styles.image} />
+      </span>
+
+      <span className={styles.info}>
+        <span className={styles.identity}>
+          <span className={styles.brand}>{product.brand}</span>
+          <span className={styles.name}>{product.name}</span>
+        </span>
+        <span className={styles.price}>{product.basePrice} EUR</span>
+      </span>
+    </Link>
+  );
+}

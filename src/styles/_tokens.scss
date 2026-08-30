@@ -5,32 +5,19 @@
   --font-size-sm: 0.75rem;
   --font-size-md: 0.875rem;
   --font-size-lg: 1rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 2rem;
 
   --font-weight-light: 300;
-  --font-weight-regular: 400;
-  --font-weight-bold: 700;
 
-  --line-height-tight: 1.2;
   --line-height-base: 1.5;
-
-  --letter-spacing-wide: 0.05em;
 
   --color-black: #000000;
   --color-white: #ffffff;
-  --color-grey-50: #f6f6f6;
-  --color-grey-200: #e5e5e5;
   --color-grey-400: #cccccc;
-  --color-grey-600: #8a8a8a;
-  --color-grey-900: #1a1a1a;
 
   --color-text: var(--color-black);
-  --color-text-muted: var(--color-grey-600);
   --color-text-placeholder: #aaaaaa;
+  --color-text-subtle: #79736d;
   --color-background: var(--color-white);
-  --color-border: var(--color-grey-400);
-  --color-surface: var(--color-grey-50);
   --color-focus: #005fcc;
 
   --spacing-2xs: 0.25rem;
@@ -38,13 +25,6 @@
   --spacing-sm: 0.75rem;
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
-  --spacing-2xl: 3rem;
-  --spacing-3xl: 4rem;
-
-  --layout-max-width: 90rem;
-  --layout-gutter: var(--spacing-md);
-  --header-height: 3.5rem;
 
   --duration-fast: 160ms;
   --duration-base: 320ms;
