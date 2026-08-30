@@ -1,0 +1,27 @@
+@use 'breakpoints' as bp;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 5rem;
+  padding-bottom: 1.5rem;
+
+  @include bp.from('md') {
+    padding-bottom: 3rem;
+  }
+
+  > * {
+    animation: fade-in var(--duration-base) var(--easing-standard) both;
+  }
+
+  @for $position from 1 through 4 {
+    > *:nth-child(#{$position}) {
+      animation-delay: calc(var(--stagger-step) * #{$position});
+    }
+  }
+
+  @include bp.from('lg') {
+    width: min(75rem, 100%);
+    margin-inline: auto;
+  }
+}

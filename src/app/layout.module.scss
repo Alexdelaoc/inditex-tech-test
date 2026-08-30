@@ -2,30 +2,15 @@
 
 .main {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 1.5rem;
-  padding-top: 1.5rem;
-  padding-bottom: 1.5rem;
   padding-inline: 1rem;
 
   @include bp.from('md') {
-    gap: 3rem;
-    padding-top: 3rem;
-    padding-bottom: 3rem;
     padding-inline: 2.5rem;
   }
 
   @include bp.from('lg') {
     padding-inline: 6.25rem;
-  }
-
-  > * {
-    animation: fade-in var(--duration-base) var(--easing-standard) both;
-  }
-
-  @for $position from 1 through 4 {
-    > *:nth-child(#{$position}) {
-      animation-delay: calc(var(--stagger-step) * #{$position});
-    }
   }
 }

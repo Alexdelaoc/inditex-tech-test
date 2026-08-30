@@ -1,0 +1,42 @@
+@use 'breakpoints' as bp;
+
+.carousel {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  --thumb-width: 6.25rem;
+
+  @include bp.from('lg') {
+    --thumb-width: 9.375rem;
+  }
+}
+
+.track {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin-inline: calc(50% - 50vw);
+  padding-inline: calc(50vw - 50%);
+  scroll-snap-type: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @include bp.from('lg') {
+  }
+}
+
+.bar {
+  position: relative;
+  height: 1px;
+  background-color: var(--color-grey-400);
+}
+
+.thumb {
+  position: absolute;
+  top: 0;
+  width: var(--thumb-width);
+  height: 100%;
+  background-color: var(--color-black);
+}

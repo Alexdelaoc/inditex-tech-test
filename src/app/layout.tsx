@@ -1,6 +1,7 @@
 import { Header } from '@/components/Header/Header';
 import { NavigationProgress } from '@/components/Navigation/NavigationProgress';
 import { NavigationProvider } from '@/components/Navigation/NavigationProvider';
+import { CartProvider } from '@/modules/cart/CartProvider';
 
 import styles from './layout.module.scss';
 
@@ -19,9 +20,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body>
         <NavigationProvider>
-          <Header />
-          <NavigationProgress />
-          <main className={styles.main}>{children}</main>
+          <CartProvider>
+            <Header />
+            <NavigationProgress />
+            <main className={styles.main}>{children}</main>
+          </CartProvider>
         </NavigationProvider>
       </body>
     </html>

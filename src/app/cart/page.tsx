@@ -1,10 +1,11 @@
-import Link from 'next/link';
+import { CartView } from '@/modules/cart/CartView';
+
+import styles from './page.module.scss';
 
 export default function CartPage() {
   return (
-    <>
-      <h1>Cart</h1>
-      <Link href="/">Continue shopping</Link>
-    </>
+    <div className={styles.page}>
+      <CartView />
+    </div>
   );
 }

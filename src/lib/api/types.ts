@@ -28,7 +28,11 @@ export type ProductSpecs = {
   screenRefreshRate: string;
 };
 
-export interface Product extends ProductListItem {
+export interface Product {
+  id: string;
+  brand: string;
+  name: string;
+  basePrice: number;
   description: string;
   rating: number;
   specs: ProductSpecs;
