@@ -4,7 +4,7 @@ import { use } from 'react';
 
 import type { ProductListItem } from '@/lib/api/types';
 
-export function resultsLabel(count: number) {
+function resultsLabel(count: number) {
   return `${count} ${count === 1 ? 'result' : 'results'}`;
 }
 

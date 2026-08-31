@@ -42,16 +42,22 @@ export function ProductConfigurator({ product }: { product: Product }) {
   return (
     <div className={styles.detail}>
       <div className={styles.figure}>
-        {shownColor && (
-          <Image
-            src={shownColor.imageUrl}
-            alt={product.name}
-            fill
-            sizes={SIZES}
-            className={styles.image}
-            priority
-          />
-        )}
+        {product.colorOptions.map((option, index) => {
+          const shown = option.name === shownColor?.name;
+
+          return (
+            <Image
+              key={option.name}
+              src={option.imageUrl}
+              alt={shown ? product.name : ''}
+              fill
+              sizes={SIZES}
+              className={styles.image}
+              data-shown={shown}
+              priority={index === 0}
+            />
+          );
+        })}
       </div>
 
       <div className={styles.info}>

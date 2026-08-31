@@ -33,6 +33,12 @@
 
 .image {
   object-fit: contain;
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--easing-standard);
+
+  &[data-shown='true'] {
+    opacity: 1;
+  }
 }
 
 .info {
