@@ -9,13 +9,25 @@ import type { ProductListItem } from '@/lib/api/types';
 
 const SIZES = '(min-width: 64rem) 25vw, (min-width: 48rem) 50vw, 100vw';
 
-export function ProductCard({ product }: { product: ProductListItem }) {
+interface ProductCardProps {
+  product: ProductListItem;
+  priority?: boolean;
+}
+
+export function ProductCard({ product, priority = false }: ProductCardProps) {
   return (
     <Link href={`/product/${encodeURIComponent(product.id)}`} className={styles.card}>
       <LinkProgress />
 
       <span className={styles.figure}>
-        <Image src={product.imageUrl} alt="" fill sizes={SIZES} className={styles.image} />
+        <Image
+          src={product.imageUrl}
+          alt=""
+          fill
+          sizes={SIZES}
+          className={styles.image}
+          priority={priority}
+        />
       </span>
 
       <span className={styles.info}>
