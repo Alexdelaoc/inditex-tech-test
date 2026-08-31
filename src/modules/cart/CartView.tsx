@@ -34,7 +34,7 @@ export function CartView() {
 
                 <button
                   type="button"
-                  aria-label={`Delete ${line.name}`}
+                  aria-label={`Delete ${line.name}, ${line.color}, ${line.storage}`}
                   className={styles.delete}
                   onClick={() => removeLine(line.id)}
                 >
@@ -59,7 +59,7 @@ export function CartView() {
         </Link>
 
         {count > 0 && (
-          <button type="button" className={styles.pay}>
+          <button type="button" className={styles.pay} disabled>
             Pay
           </button>
         )}

@@ -73,7 +73,7 @@ export function SearchBar({ resultsCount }: SearchBarProps) {
         </button>
       </form>
 
-      <p className={styles.results}>
+      <p className={styles.results} aria-live="polite" aria-atomic="true">
         <span>
           {resultsCount} {resultsCount === 1 ? 'result' : 'results'}
         </span>

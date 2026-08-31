@@ -12,7 +12,7 @@ import '@/styles/globals.scss';
 
 export const metadata: Metadata = {
   title: 'Zara Web Challenge',
-  description: 'Catálogo de teléfonos móviles',
+  description: 'Browse, search and buy smartphones',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

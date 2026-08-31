@@ -72,7 +72,9 @@ describe('CartView', () => {
   it('removes the line the shopper deletes', async () => {
     const user = setup([galaxy, pixel]);
 
-    await user.click(screen.getByRole('button', { name: 'Delete Galaxy S24 Ultra' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Delete Galaxy S24 Ultra, Titanium Violet, 512GB' }),
+    );
 
     expect(screen.queryByText('Galaxy S24 Ultra')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Cart (1)');

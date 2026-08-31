@@ -3,6 +3,7 @@
 
 html {
   font-family: var(--font-family-base);
+  scroll-padding-top: calc(var(--header-height) + 1px);
 }
 
 @keyframes fade-in {
