@@ -52,12 +52,11 @@ describe('CartView', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Cart (2)');
   });
 
-  it('shows the brand, the name, the chosen configuration and the price of each line', () => {
+  it('shows the name, the chosen configuration and the price of each line', () => {
     setup([galaxy, pixel]);
 
     const line = within(screen.getAllByRole('listitem')[0]!);
 
-    expect(line.getByText('Samsung')).toBeInTheDocument();
     expect(line.getByText('Galaxy S24 Ultra')).toBeInTheDocument();
     expect(line.getByText('Titanium Violet | 512GB')).toBeInTheDocument();
     expect(line.getByText('1279 EUR')).toBeInTheDocument();

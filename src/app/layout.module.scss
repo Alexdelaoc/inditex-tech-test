@@ -1,4 +1,4 @@
-@use 'breakpoints' as bp;
+@use 'breakpoints' as breakpoints;
 
 .main {
   display: flex;
@@ -6,11 +6,11 @@
   flex-direction: column;
   padding-inline: 1rem;
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     padding-inline: 2.5rem;
   }
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     padding-inline: 6.25rem;
   }
 }

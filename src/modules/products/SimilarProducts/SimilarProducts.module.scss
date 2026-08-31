@@ -1,4 +1,4 @@
-@use 'breakpoints' as bp;
+@use 'breakpoints' as breakpoints;
 
 .section {
   display: flex;
@@ -19,11 +19,11 @@
   width: min(21.5rem, 85vw);
   border: 0.5px solid var(--color-black);
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     width: 23.5625rem;
   }
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     width: 21.5rem;
   }
 

@@ -1,4 +1,7 @@
-@use 'breakpoints' as bp;
+@use 'animations' as animations;
+@use 'breakpoints' as breakpoints;
+
+@include animations.fade-in;
 
 .page {
   display: flex;
@@ -8,13 +11,13 @@
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     gap: 3.5rem;
     padding-top: 3rem;
     padding-bottom: 2.5rem;
   }
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     padding-bottom: 3.5rem;
   }
 
