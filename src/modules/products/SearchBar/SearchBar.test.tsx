@@ -13,6 +13,10 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => currentParams,
 }));
 
+jest.mock('@/modules/products/ResultsCount/ResultsCount', () => ({
+  ResultsCount: () => null,
+}));
+
 function setup() {
   const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
   render(
