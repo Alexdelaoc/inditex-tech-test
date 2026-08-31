@@ -1,6 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { LinkProgress } from '@/components/Navigation/LinkProgress';
+
 import styles from './ProductCard.module.scss';
 
 import type { ProductListItem } from '@/lib/api/types';
@@ -10,6 +12,8 @@ const SIZES = '(min-width: 64rem) 25vw, (min-width: 48rem) 50vw, 100vw';
 export function ProductCard({ product }: { product: ProductListItem }) {
   return (
     <Link href={`/product/${encodeURIComponent(product.id)}`} className={styles.card}>
+      <LinkProgress />
+
       <span className={styles.figure}>
         <Image src={product.imageUrl} alt="" fill sizes={SIZES} className={styles.image} />
       </span>
