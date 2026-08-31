@@ -1,6 +1,8 @@
-import { ProductGrid } from '@/modules/products/ProductGrid/ProductGrid';
-import { SearchBar } from '@/modules/products/SearchBar/SearchBar';
+import { Suspense } from 'react';
+
 import { getProducts } from '@/lib/api/client';
+import { ProductResults } from '@/modules/products/ProductResults/ProductResults';
+import { SearchBar } from '@/modules/products/SearchBar/SearchBar';
 
 import styles from './page.module.scss';
 
@@ -12,12 +14,15 @@ interface HomePageProps {
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const { search } = await searchParams;
-  const products = await getProducts(search ? { search } : { limit: INITIAL_PRODUCTS });
+  const products = getProducts(search ? { search } : { limit: INITIAL_PRODUCTS });
 
   return (
     <div className={styles.page}>
-      <SearchBar resultsCount={products.length} />
-      <ProductGrid products={products} />
+      <SearchBar products={products} />
+
+      <Suspense key={search ?? ''} fallback={null}>
+        <ProductResults products={products} />
+      </Suspense>
     </div>
   );
 }
