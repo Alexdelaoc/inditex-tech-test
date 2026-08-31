@@ -17,8 +17,8 @@ $bar-fraction: 0.25;
   top: var(--header-height);
   z-index: 2;
   height: 1px;
+  margin-bottom: -1px;
   overflow: hidden;
-  background-color: var(--color-background);
 }
 
 .bar {
