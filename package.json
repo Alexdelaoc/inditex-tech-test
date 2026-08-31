@@ -4,7 +4,7 @@
   "private": true,
   "description": "Catálogo de teléfonos móviles construido con Next.js App Router",
   "engines": {
-    "node": ">=20.9.0"
+    "node": "24.x"
   },
   "packageManager": "pnpm@10.34.1",
   "scripts": {
