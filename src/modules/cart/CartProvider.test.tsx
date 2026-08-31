@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { CartProvider, useCart } from './CartProvider';
 import { STORAGE_KEY } from './cartStorage';
 
-import type { NewCartLine } from './CartProvider';
+import type { NewCartLine } from './cartStore';
 
 const galaxy: NewCartLine = {
   productId: 'SMG-S24U',
