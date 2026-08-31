@@ -1,4 +1,4 @@
-@use 'breakpoints' as bp;
+@use 'breakpoints' as breakpoints;
 
 .title {
   font-size: 1.25rem;
@@ -6,7 +6,7 @@
   line-height: 1.2;
   text-transform: uppercase;
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     font-size: 1.5rem;
   }
 }
@@ -16,7 +16,7 @@
   flex-direction: column;
   gap: 2rem;
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     gap: 3rem;
   }
 }
@@ -25,7 +25,7 @@
   display: flex;
   gap: var(--spacing-md);
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     gap: 2.5rem;
   }
 }
@@ -36,7 +36,7 @@
   max-width: 6rem;
   aspect-ratio: 1;
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     max-width: 14.5rem;
   }
 }
@@ -49,23 +49,24 @@
   display: flex;
   flex: 1;
   flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+  margin: 2.5rem 0;
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-2xs);
   min-width: 0;
 }
 
-.brand,
 .name,
 .variant,
 .price,
 .delete {
   font-weight: var(--font-weight-light);
   line-height: 1.25;
-}
-
-.brand {
-  font-size: var(--font-size-xs);
-  text-transform: uppercase;
-  color: var(--color-text-subtle);
 }
 
 .name {
@@ -76,6 +77,7 @@
 .variant,
 .price {
   font-size: var(--font-size-sm);
+  text-transform: uppercase;
 }
 
 .variant {
@@ -84,51 +86,56 @@
 
 .delete {
   align-self: flex-start;
-  margin-top: var(--spacing-md);
   padding: 0;
   font-size: var(--font-size-sm);
   text-transform: uppercase;
   color: var(--color-danger);
+  margin-top: auto;
+  transition: opacity 300ms ease-out;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 0.6;
+  }
 }
 
 .footer {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   margin-top: auto;
-  grid-template-columns: 1fr 1fr;
-  grid-template-areas:
-    'total total'
-    'continue pay';
   gap: var(--spacing-lg) var(--spacing-sm);
 
-  @include bp.from('md') {
-    grid-template-columns: auto 1fr auto;
-    grid-template-areas: 'continue total pay';
+  @include breakpoints.from('md') {
+    flex-wrap: nowrap;
     align-items: center;
     gap: 3.5rem;
   }
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     gap: 5rem;
   }
 }
 
 .total {
   display: flex;
-  grid-area: total;
+  flex: 1 0 100%;
   gap: var(--spacing-lg);
   justify-content: space-between;
   font-size: var(--font-size-md);
   line-height: 1.2143;
   text-transform: uppercase;
+  white-space: nowrap;
 
-  @include bp.from('md') {
-    justify-self: end;
+  @include breakpoints.from('md') {
+    flex: 1;
+    justify-content: flex-end;
   }
 }
 
 .continue,
 .pay {
   display: flex;
+  flex: 1;
   align-items: center;
   justify-content: center;
   min-height: 3rem;
@@ -140,34 +147,34 @@
   text-align: center;
   text-transform: uppercase;
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
+    flex: none;
     padding-inline: 2rem;
   }
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     min-height: 3.5rem;
   }
 }
 
 .continue {
-  grid-area: continue;
   border: 0.5px solid var(--color-ink);
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
+    order: -1;
     min-width: 12.5rem;
   }
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     min-width: 16.25rem;
   }
 }
 
 .pay {
-  grid-area: pay;
   background-color: var(--color-ink);
   color: var(--color-white);
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     min-width: 16.25rem;
   }
 }

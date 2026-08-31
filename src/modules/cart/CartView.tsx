@@ -25,11 +25,13 @@ export function CartView() {
               </span>
 
               <div className={styles.info}>
-                <p className={styles.brand}>{line.brand}</p>
-                <p className={styles.name}>{line.name}</p>
-                <p className={styles.variant}>
-                  {line.color} | {line.storage}
-                </p>
+                <div className={styles.identity}>
+                  <p className={styles.name}>{line.name}</p>
+                  <p className={styles.variant}>
+                    {line.color} | {line.storage}
+                  </p>
+                </div>
+
                 <p className={styles.price}>{line.price} EUR</p>
 
                 <button

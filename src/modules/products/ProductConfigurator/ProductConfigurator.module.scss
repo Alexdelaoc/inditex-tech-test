@@ -1,11 +1,11 @@
-@use 'breakpoints' as bp;
+@use 'breakpoints' as breakpoints;
 
 .detail {
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
@@ -19,13 +19,13 @@
   max-width: 24.25rem;
   aspect-ratio: 260 / 273;
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     flex: 1;
     max-width: 21.0625rem;
     aspect-ratio: 337 / 416;
   }
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     max-width: 31.875rem;
     aspect-ratio: 510 / 630;
   }
@@ -47,12 +47,12 @@
   gap: 2.5rem;
   min-width: 0;
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     flex: 1;
     max-width: 23.75rem;
   }
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     gap: 4rem;
   }
 }
@@ -70,7 +70,7 @@
   line-height: 1.2;
   text-transform: uppercase;
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     font-size: 1.5rem;
   }
 }
@@ -81,7 +81,7 @@
   font-weight: var(--font-weight-light);
   line-height: 1.2;
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     font-size: 1.25rem;
   }
 }
@@ -91,7 +91,7 @@
   flex-direction: column;
   gap: 1.25rem;
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     gap: var(--spacing-lg);
   }
 }
@@ -103,7 +103,7 @@
   line-height: 1.25;
   text-transform: uppercase;
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     font-size: var(--font-size-md);
   }
 }
@@ -129,7 +129,7 @@
     border-color: var(--color-black);
   }
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     font-size: var(--font-size-md);
   }
 }

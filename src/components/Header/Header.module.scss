@@ -1,4 +1,7 @@
-@use 'breakpoints' as bp;
+@use 'animations' as animations;
+@use 'breakpoints' as breakpoints;
+
+@include animations.fade-in;
 
 .header {
   position: sticky;
@@ -12,11 +15,11 @@
   background-color: var(--color-background);
   animation: fade-in var(--duration-base) var(--easing-standard) both;
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     padding-inline: 2.5rem;
   }
 
-  @include bp.from('lg') {
+  @include breakpoints.from('lg') {
     padding-inline: 6.25rem;
   }
 }
