@@ -1,17 +1,12 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, use, useMemo, useSyncExternalStore } from 'react';
 
-import { readCart, writeCart } from './cartStorage';
+import { addLine, getServerSnapshot, getSnapshot, removeLine, subscribe } from './cartStore';
 
+import type { NewCartLine } from './cartStore';
 import type { CartLine } from './types';
 import type { ReactNode } from 'react';
-
-export type NewCartLine = Omit<CartLine, 'id'>;
-
-function nextLineId() {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
 
 interface CartValue {
   lines: CartLine[];
@@ -30,27 +25,7 @@ export const CartContext = createContext<CartValue>({
 });
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [lines, setLines] = useState<CartLine[]>([]);
-  const [restored, setRestored] = useState(false);
-
-  useEffect(() => {
-    setLines(readCart());
-    setRestored(true);
-  }, []);
-
-  useEffect(() => {
-    if (restored) {
-      writeCart(lines);
-    }
-  }, [lines, restored]);
-
-  const addLine = useCallback((line: NewCartLine) => {
-    setLines((current) => [...current, { ...line, id: nextLineId() }]);
-  }, []);
-
-  const removeLine = useCallback((id: string) => {
-    setLines((current) => current.filter((line) => line.id !== id));
-  }, []);
+  const lines = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const value = useMemo(
     () => ({
@@ -60,12 +35,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       addLine,
       removeLine,
     }),
-    [lines, addLine, removeLine],
+    [lines],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {
-  return useContext(CartContext);
+  return use(CartContext);
 }

@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
     ],
   },
   sassOptions: {
-    includePaths: ['./src/styles'],
+    loadPaths: ['./src/styles'],
   },
 };
 

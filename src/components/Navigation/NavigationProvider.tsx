@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { createContext, useCallback, useContext, useMemo, useState, useTransition } from 'react';
+import { createContext, use, useCallback, useMemo, useState, useTransition } from 'react';
 
 import { useLoadingIndicator } from './useLoadingIndicator';
 
@@ -45,5 +45,5 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
 }
 
 export function useNavigation() {
-  return useContext(NavigationContext);
+  return use(NavigationContext);
 }

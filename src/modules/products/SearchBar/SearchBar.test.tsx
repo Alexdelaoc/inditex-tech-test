@@ -17,7 +17,7 @@ function setup() {
   const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
   render(
     <NavigationProvider>
-      <SearchBar resultsCount={0} />
+      <SearchBar products={Promise.resolve([])} />
     </NavigationProvider>,
   );
 
@@ -51,28 +51,6 @@ describe('SearchBar', () => {
     setup();
 
     expect(screen.getByRole('button', { name: 'Search' })).toHaveAttribute('type', 'submit');
-  });
-
-  it('shows how many results are being displayed', () => {
-    jest.useRealTimers();
-    render(
-      <NavigationProvider>
-        <SearchBar resultsCount={19} />
-      </NavigationProvider>,
-    );
-
-    expect(screen.getByText('19 results')).toBeInTheDocument();
-  });
-
-  it('keeps the singular in agreement when there is a single result', () => {
-    jest.useRealTimers();
-    render(
-      <NavigationProvider>
-        <SearchBar resultsCount={1} />
-      </NavigationProvider>,
-    );
-
-    expect(screen.getByText('1 result')).toBeInTheDocument();
   });
 
   it('starts with the term that is already in the url', () => {

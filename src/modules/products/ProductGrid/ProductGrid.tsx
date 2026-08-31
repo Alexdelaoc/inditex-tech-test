@@ -1,5 +1,5 @@
 import { ProductCard } from '@/modules/products/ProductCard/ProductCard';
-import { withKeys } from '@/modules/products/withKeys';
+import { keyedProducts } from '@/modules/products/keyedProducts';
 
 import styles from './ProductGrid.module.scss';
 
@@ -8,9 +8,9 @@ import type { ProductListItem } from '@/lib/api/types';
 export function ProductGrid({ products }: { products: ProductListItem[] }) {
   return (
     <ul className={styles.grid}>
-      {withKeys(products).map(({ key, product }) => (
+      {keyedProducts(products).map(({ key, product }, index) => (
         <li key={key}>
-          <ProductCard product={product} />
+          <ProductCard product={product} priority={index === 0} />
         </li>
       ))}
     </ul>

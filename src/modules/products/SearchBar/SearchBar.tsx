@@ -1,19 +1,21 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useRef, useState } from 'react';
 
 import { Icon } from '@/components/Icon/Icon';
 import { useNavigation } from '@/components/Navigation/NavigationProvider';
+import { ResultsCount } from '@/modules/products/ResultsCount/ResultsCount';
 
 import styles from './SearchBar.module.scss';
 
+import type { ProductListItem } from '@/lib/api/types';
 import type { SyntheticEvent } from 'react';
 
 const DEBOUNCE_MS = 300;
 
 interface SearchBarProps {
-  resultsCount: number;
+  products: Promise<ProductListItem[]>;
 }
 
 function hrefFor(term: string) {
@@ -22,24 +24,22 @@ function hrefFor(term: string) {
   return trimmed ? `/?${new URLSearchParams({ search: trimmed })}` : '/';
 }
 
-export function SearchBar({ resultsCount }: SearchBarProps) {
+export function SearchBar({ products }: SearchBarProps) {
   const { navigate } = useNavigation();
   const searchParams = useSearchParams();
   const termInUrl = searchParams.get('search') ?? '';
   const [term, setTerm] = useState(termInUrl);
+  const pendingSearch = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => {
-    if (term.trim() === termInUrl) {
-      return;
-    }
-
-    const timeout = setTimeout(() => navigate(hrefFor(term)), DEBOUNCE_MS);
-
-    return () => clearTimeout(timeout);
-  }, [term, termInUrl, navigate]);
+  function search(next: string) {
+    clearTimeout(pendingSearch.current);
+    setTerm(next);
+    pendingSearch.current = setTimeout(() => navigate(hrefFor(next)), DEBOUNCE_MS);
+  }
 
   function handleSubmit(event: SyntheticEvent) {
     event.preventDefault();
+    clearTimeout(pendingSearch.current);
     navigate(hrefFor(term));
   }
 
@@ -56,14 +56,14 @@ export function SearchBar({ resultsCount }: SearchBarProps) {
           className={styles.input}
           placeholder="Search for a smartphone..."
           value={term}
-          onChange={(event) => setTerm(event.target.value)}
+          onChange={(event) => search(event.target.value)}
         />
         {term && (
           <button
             type="button"
             className={styles.clear}
             aria-label="Clear the search"
-            onClick={() => setTerm('')}
+            onClick={() => search('')}
           >
             <Icon name="clear" />
           </button>
@@ -74,9 +74,9 @@ export function SearchBar({ resultsCount }: SearchBarProps) {
       </form>
 
       <p className={styles.results} aria-live="polite" aria-atomic="true">
-        <span>
-          {resultsCount} {resultsCount === 1 ? 'result' : 'results'}
-        </span>
+        <Suspense fallback={null}>
+          <ResultsCount products={products} />
+        </Suspense>
       </p>
     </div>
   );
