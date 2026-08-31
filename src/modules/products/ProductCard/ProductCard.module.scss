@@ -1,4 +1,4 @@
-@use 'breakpoints' as bp;
+@use 'breakpoints' as breakpoints;
 
 .card {
   position: relative;
@@ -9,7 +9,7 @@
   aspect-ratio: 361 / 344;
   isolation: isolate;
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     aspect-ratio: 1;
   }
 

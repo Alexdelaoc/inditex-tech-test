@@ -9,10 +9,15 @@ Está construido con Next.js sobre el App Router y renderizado en servidor (SSR)
 
 | Herramienta | Versión                |
 | ----------- | ---------------------- |
-| Node        | 18.18.0 o superior     |
+| Node        | 24 (LTS)               |
 | pnpm        | 10 (fijado en el repo) |
 
-El proyecto se quedó en Next.js 15 precisamente para poder ejecutarse sobre Node 18 como pide la prueba técnica; Next 16 ya exige Node 20.9. El mínimo real es **18.18.0**, que es el que impone Next 15: con un Node 18 anterior la instalación pasa pero el build falla. La versión con la que se verifica en integración continua está en `.nvmrc`.
+El archivo PDF de la prueba técnica se pide en el apartado STACK TECNOLÓGICO Node 18, pero el proyecto corre sobre Node 24. Hay dos motivos:
+
+- El primero es que usa Next.js 16, que declara `engines: { node: '>=20.9.0' }`: con Node 18 la instalación avisa y el build falla.
+- El segundo es que 24 es la versión LTS vigente y la que ejecuta Vercel en el despliegue, de modo que entorno local, integración continua y producción corren sobre el mismo major.
+
+Node 18, además, dejó de recibir soporte en abril de 2025, por lo que la versión queda fijada en `.nvmrc` y en el campo `engines` del `package.json`, y es la misma con la que se verifica en integración continua.
 
 ```bash
 node --version
@@ -91,7 +96,11 @@ El buscador escribe el término en la URL como `?search=` y el servidor devuelve
 
 Las fichas de producto se prerenderizan en el build con `generateStaticParams` y se revalidan cada hora.
 
-El carrito vive en un contexto de React (`CartProvider`) montado en el layout y se persiste en `localStorage`. Lo que se lee del almacenamiento se valida campo a campo antes de usarse, así que un valor corrupto o de una versión anterior se descarta en lugar de romper la aplicación.
+La página arranca la petición y no la aguarda. Entrega de inmediato el documento con la cabecera y el buscador, y deja la cuadrícula dentro de un `<Suspense>`. Cuando la API contesta, el marcado de la cuadrícula viaja por la misma conexión HTTP y React lo coloca en su hueco. En casos como un arranque en frío del servidor el procesado lento de la petición se traduce en una pantalla en blanco o casi en blanco de varios segundos.
+
+El contador de resultados vive dentro del buscador, que es un componente de cliente porque escribe en la URL. Recibe la promesa en lugar del número ya resuelto y la consume con `use`, así que el formulario se pinta y se puede usar antes de que haya resultados que contar.
+
+El carrito vive en un contexto de React (`CartProvider`) montado en el layout y se persiste en `localStorage`. Lo que se lee del almacenamiento se valida campo a campo antes de usarse, así que un valor corrupto o de una versión anterior se descarta en lugar de romper la aplicación. La lectura no usa efectos: `localStorage` es un almacén externo a React y se consume con `useSyncExternalStore`, que es la herramienta que React ofrece para eso. La suscripción escucha además el evento `storage`, de modo que el carrito se mantiene sincronizado entre pestañas.
 
 `app/error.tsx` y `app/not-found.tsx` recogen los fallos. El de error muestra un mensaje genérico en lugar del original, con un test que lo vigila: un 401 de la API no debería acabar enseñando "Invalid API key" en pantalla.
 
@@ -114,6 +123,8 @@ El criterio para separar `components/` de `modules/` no es si algo es un compone
 Las tres vistas siguen los diseños de Figma y son responsive de móvil a escritorio. La tipografía es la que fija el enunciado, `Helvetica, Arial, sans-serif`. Los colores, espaciados y tiempos de animación están declarados como variables CSS y los estilos se escriben en Sass con módulos, de manera que cada clase queda acotada a su componente.
 
 Los selectores de color y almacenamiento son `input type="radio"` reales agrupados con `role="group"`, así que funcionan con teclado y se anuncian correctamente por el lector de pantalla. El contador del carrito, los botones de borrado y los enlaces con sólo un icono llevan nombre accesible. Las animaciones respetan `prefers-reduced-motion`.
+
+Los @keyframes viven en `styles/_animations.scss` como mixin y lo incluye cada módulo que los necesita. Los módulos CSS acotan también el nombre de las animaciones, así que una definición global queda sin efecto: la referencia dentro del .module.scss se reescribe con el prefijo del módulo y deja de apuntar a ella. El coste es una copia de la regla por módulo; a cambio la animación se escribe en un único sitio.
 
 ## Pruebas
 
@@ -138,9 +149,8 @@ Cada push a `main` lanza el workflow de GitHub Actions: instala con el lockfile 
   la complicación que conllevaría en cuanto a diseño del componente (pedir de más y recortar, añadir paginación a pesar de esto
   si se pidiera, etcétera).
 
-
 ## Stack
 
-Next.js 15 y React 19 sobre TypeScript en modo estricto. Gestión de estado con Context API. Sass
+Next.js 16 y React 19 sobre TypeScript en modo estricto. Gestión de estado con Context API. Sass
 con módulos CSS y variables CSS como design tokens. Jest y React Testing Library para las pruebas,
 ESLint y Prettier para el estilo.

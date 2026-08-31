@@ -1,3 +1,7 @@
+@use 'animations' as animations;
+
+@include animations.fade-in;
+
 .searchBar {
   position: sticky;
   top: calc(var(--header-height) - 1px);
@@ -44,7 +48,7 @@
   flex: none;
   padding: 0;
   color: var(--color-text);
-  animation: fade-in var(--duration-fast) var(--easing-standard) both;
+  animation: fade-in var(--duration-base) var(--easing-standard) both;
 
   &::after {
     content: '';

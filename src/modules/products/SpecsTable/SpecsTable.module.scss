@@ -1,4 +1,4 @@
-@use 'breakpoints' as bp;
+@use 'breakpoints' as breakpoints;
 
 .section {
   display: flex;
@@ -25,7 +25,7 @@
   padding-block: var(--spacing-md);
   border-bottom: 0.5px solid var(--color-black);
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     gap: 3rem;
   }
 }
@@ -42,7 +42,7 @@
   flex: 0 1 9.375rem;
   text-transform: uppercase;
 
-  @include bp.from('md') {
+  @include breakpoints.from('md') {
     flex-basis: 18.75rem;
   }
 }
