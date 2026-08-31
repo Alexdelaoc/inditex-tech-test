@@ -1,10 +1,14 @@
 @use 'breakpoints' as bp;
 
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   display: flex;
+  height: var(--header-height);
   align-items: center;
   justify-content: space-between;
-  padding: 1.75rem 1rem;
+  padding-inline: 1rem;
   background-color: var(--color-background);
   animation: fade-in var(--duration-base) var(--easing-standard) both;
 
