@@ -5,7 +5,7 @@ export interface KeyedProduct {
   product: ProductListItem;
 }
 
-export function withKeys(products: ProductListItem[]): KeyedProduct[] {
+export function keyedProducts(products: ProductListItem[]): KeyedProduct[] {
   const occurrences = new Map<string, number>();
 
   return products.map((product) => {
