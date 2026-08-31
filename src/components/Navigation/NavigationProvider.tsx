@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { createContext, useCallback, useContext, useMemo, useTransition } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, useTransition } from 'react';
 
 import { useLoadingIndicator } from './useLoadingIndicator';
 
@@ -10,17 +10,20 @@ import type { ReactNode } from 'react';
 interface NavigationValue {
   isLoading: boolean;
   navigate: (href: string) => void;
+  reportLinkPending: (pending: boolean) => void;
 }
 
 export const NavigationContext = createContext<NavigationValue>({
   isLoading: false,
   navigate: () => {},
+  reportLinkPending: () => {},
 });
 
 export function NavigationProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const isLoading = useLoadingIndicator(isPending);
+  const [linkPending, setLinkPending] = useState(false);
+  const isLoading = useLoadingIndicator(isPending || linkPending);
 
   const navigate = useCallback(
     (href: string) => {
@@ -29,7 +32,14 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
     [router],
   );
 
-  const value = useMemo(() => ({ isLoading, navigate }), [isLoading, navigate]);
+  const reportLinkPending = useCallback((pending: boolean) => {
+    setLinkPending(pending);
+  }, []);
+
+  const value = useMemo(
+    () => ({ isLoading, navigate, reportLinkPending }),
+    [isLoading, navigate, reportLinkPending],
+  );
 
   return <NavigationContext.Provider value={value}>{children}</NavigationContext.Provider>;
 }

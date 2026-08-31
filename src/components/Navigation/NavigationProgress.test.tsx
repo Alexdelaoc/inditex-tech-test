@@ -5,7 +5,9 @@ import { NavigationContext } from './NavigationProvider';
 
 function renderTrack(isLoading: boolean) {
   const { container } = render(
-    <NavigationContext.Provider value={{ isLoading, navigate: jest.fn() }}>
+    <NavigationContext.Provider
+      value={{ isLoading, navigate: jest.fn(), reportLinkPending: jest.fn() }}
+    >
       <NavigationProgress />
     </NavigationContext.Provider>,
   );
