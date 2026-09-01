@@ -9,3 +9,15 @@
     }
   }
 }
+
+@mixin pulse {
+  @keyframes pulse {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0.45;
+    }
+  }
+}
