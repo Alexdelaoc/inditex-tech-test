@@ -12,6 +12,8 @@ Está construido con Next.js sobre el App Router y renderizado en servidor (SSR)
 | Node        | 24 (LTS)               |
 | pnpm        | 10 (fijado en el repo) |
 
+Node y pnpm sólo hacen falta para levantar el proyecto con pnpm. Con Docker basta con tener Docker con Compose v2: Node y pnpm corren dentro de la imagen, con las mismas versiones que fija el repositorio.
+
 El archivo PDF de la prueba técnica se pide en el apartado STACK TECNOLÓGICO Node 18, pero el proyecto corre sobre Node 24. Hay dos motivos:
 
 - El primero es que usa Next.js 16, que declara `engines: { node: '>=20.9.0' }`: con Node 18 la instalación avisa y el build falla.
@@ -26,6 +28,26 @@ node --version
 Si usas nvm, `nvm use` en la raíz del proyecto coge la versión del `.nvmrc`.
 
 ## Puesta en marcha
+
+Hay dos formas de levantar el proyecto. Con pnpm se arranca el servidor de desarrollo, con recarga en caliente, y es la vía para trabajar sobre el código. Con Docker se construye y se sirve la build de producción dentro de un contenedor, sin instalar Node ni pnpm en la máquina. Las dos necesitan antes el fichero de variables de entorno.
+
+### Variables de entorno
+
+Copia el fichero de ejemplo y rellena los dos valores con los datos del enunciado: `API_BASE_URL` es la raíz sobre la que se piden los productos y `API_KEY` es la clave que viaja en la cabecera `x-api-key`.
+
+Podemos, o bien copiar a mano las claves de `.env.example` en un archivo nuevo `.env`, o bien ejecutar este comando por consola (el cual duplicará el archivo .env.example, dándole al nuevo archivo el nombre `.env`):
+
+```bash
+cp .env.example .env
+```
+
+Tras esto deberemos insertar los valores de las variables si las conocemos.
+
+Ninguna de las dos lleva el prefijo `NEXT_PUBLIC_`, así que Next no las incluirá en el bundle del cliente y la clave se queda donde debe estar. Sin ellas la aplicación arranca, pero cualquier vista que pida datos devolverá un error.
+
+Para la vía Docker el fichero tiene que llamarse exactamente `.env`. Next también carga `.env.local`, pero Docker Compose sólo lee `.env`.
+
+### Con pnpm
 
 **1. pnpm.** La versión exacta está fijada en `package.json`. La vía recomendada es corepack, que
 se distribuye con Node:
@@ -46,19 +68,7 @@ npm install --global pnpm@10
 pnpm install
 ```
 
-**3. Variables de entorno.** Copia el fichero de ejemplo y rellena los dos valores con los datos del enunciado: `API_BASE_URL` es la raíz sobre la que se piden los productos y `API_KEY` es la clave que viaja en la cabecera `x-api-key`.
-
-Podemos, o bien copiar a mano las claves de `.env.example` en un archivo nuevo `.env`, o bien ejecutar este comando por consola (el cual duplicará el archivo .env.example, dándole al nuevo archivo el nombre `.env`):
-
-```bash
-cp .env.example .env
-```
-
-Tras esto deberemos insertar los valores de las variables si las conocemos.
-
-Ninguna de las dos lleva el prefijo `NEXT_PUBLIC_`, así que Next no las incluirá en el bundle del cliente y la clave se queda donde debe estar. Sin ellas la aplicación arranca, pero cualquier vista que pida datos devuelverá un error.
-
-**4. Arrancar.**
+**3. Arrancar.**
 
 ```bash
 pnpm dev
@@ -66,7 +76,27 @@ pnpm dev
 
 La aplicación queda en `http://localhost:3000`.
 
-La API está desplegada en un plan gratuito que apaga el servicio cuando lleva un rato sin tráfico. La primera petición después de un tiempo parado puede tardar varios segundos en responder. Esto es intencional, ya que es el arranque en frío del backend.
+### Con Docker
+
+```bash
+docker compose up --build
+```
+
+La aplicación queda en `http://localhost:3000`, igual que con pnpm, y se para con `docker compose down`. Lo que corre en el contenedor es la build de producción, no el servidor de desarrollo, así que no hay recarga en caliente.
+
+El `Dockerfile` construye en tres etapas: la primera instala las dependencias con el lockfile congelado, la segunda ejecuta `next build` y la tercera sólo copia el resultado. Next genera esa salida en modo `standalone` (`output: 'standalone'` en `next.config.ts`), que es un `server.js` acompañado únicamente de los módulos que usa en ejecución. Así la imagen final no lleva ni las dependencias de desarrollo ni el código fuente, y el proceso corre con el usuario `node` de la imagen base en lugar de como root.
+
+La clave de la API hace falta también al construir, no sólo al ejecutar, porque las fichas se prerenderizan en el build con `generateStaticParams` y eso llama a la API. Pasarla como argumento de build (`ARG`) la dejaría grabada en el historial de la imagen, así que se entrega como secreto de BuildKit: se monta en `/run/secrets` sólo durante el paso del build y ninguna capa la conserva. No se monta como `/app/.env` a propósito, porque en modo `standalone` Next copia a la salida los `.env` que haya cargado y la clave acabaría dentro de la imagen. En ejecución, las variables llegan al contenedor desde el mismo `.env` a través de `env_file`.
+
+Si el puerto 3000 está ocupado por otro proceso o contenedor, hay que liberarlo y recrear el contenedor. Reiniciarlo no basta, porque no vuelve a enlazar el puerto:
+
+```bash
+docker compose up -d --force-recreate
+```
+
+### Arranque en frío de la API
+
+La API está desplegada en un plan gratuito que apaga el servicio cuando lleva un rato sin tráfico. La primera petición después de un tiempo parado puede tardar varios segundos en responder. Esto es intencional, ya que es el arranque en frío del backend. Con Docker se nota ya durante el build, que es el primero en llamar a la API.
 
 ## Scripts
 
@@ -128,7 +158,7 @@ Los @keyframes viven en `styles/_animations.scss` como mixin y lo incluye cada m
 
 ## Pruebas
 
-91 pruebas con Jest y React Testing Library, escritas contra el comportamiento visible. Cubren el cliente de la API, el buscador, la cuadrícula, la ficha, el carrito y su persistencia.
+93 pruebas con Jest y React Testing Library, escritas contra el comportamiento visible. Cubren el cliente de la API, el buscador, la cuadrícula, la ficha, el carrito y su persistencia.
 
 ```bash
 pnpm test
@@ -137,6 +167,8 @@ pnpm test
 ## Despliegue
 
 Cada push a `main` lanza el workflow de GitHub Actions: instala con el lockfile congelado, pasa lint, tipos y pruebas, y sólo si todo eso va bien construye y despliega en Vercel. Las variables de entorno las trae del propio proyecto de Vercel con `vercel pull`, así que las credenciales no están duplicadas en los secretos del repositorio.
+
+El despliegue no pasa por Docker. Vercel construye con su propio builder, que no lee la opción `output` de Next: la carpeta `standalone` se genera igualmente durante el build, pero no se sube.
 
 ## Decisiones/dudas respecto al diseño.
 
@@ -153,4 +185,4 @@ Cada push a `main` lanza el workflow de GitHub Actions: instala con el lockfile 
 
 Next.js 16 y React 19 sobre TypeScript en modo estricto. Gestión de estado con Context API. Sass
 con módulos CSS y variables CSS como design tokens. Jest y React Testing Library para las pruebas,
-ESLint y Prettier para el estilo.
+ESLint y Prettier para el estilo. Docker y Docker Compose para servir la build de producción en local.
