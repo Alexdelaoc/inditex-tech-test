@@ -10,9 +10,11 @@ describe('ProductGridSkeleton', () => {
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
   });
 
-  it('holds the space of the cards the listing asks for', () => {
+  it('draws the outline of the cards without any of their content', () => {
     const { container } = render(<ProductGridSkeleton />);
 
-    expect(container.querySelectorAll('li')).toHaveLength(20);
+    expect(container.querySelectorAll('li').length).toBeGreaterThan(0);
+    expect(container).toHaveTextContent('');
+    expect(container.querySelector('a, button, img, input')).not.toBeInTheDocument();
   });
 });

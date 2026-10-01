@@ -10,8 +10,7 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN --mount=type=secret,id=env,required=true \
-    set -a && . /run/secrets/env && set +a && pnpm build
+RUN pnpm build
 
 FROM node:24-alpine AS runner
 WORKDIR /app

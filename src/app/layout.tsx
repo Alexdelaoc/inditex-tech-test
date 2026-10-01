@@ -1,6 +1,5 @@
 import { Header } from '@/components/Header/Header';
-import { NavigationProgress } from '@/components/Navigation/NavigationProgress';
-import { NavigationProvider } from '@/components/Navigation/NavigationProvider';
+import { readCartEntries } from '@/modules/cart/cart';
 import { CartProvider } from '@/modules/cart/CartProvider';
 
 import styles from './layout.module.scss';
@@ -11,21 +10,20 @@ import type { ReactNode } from 'react';
 import '@/styles/globals.scss';
 
 export const metadata: Metadata = {
-  title: 'Zara Web Challenge',
+  title: { default: 'Zara Web Challenge', template: '%s | Zara Web Challenge' },
   description: 'Browse, search and buy smartphones',
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const entries = await readCartEntries();
+
   return (
     <html lang="en">
       <body>
-        <NavigationProvider>
-          <CartProvider>
-            <Header />
-            <NavigationProgress />
-            <main className={styles.main}>{children}</main>
-          </CartProvider>
-        </NavigationProvider>
+        <CartProvider entries={entries}>
+          <Header />
+          <main className={styles.main}>{children}</main>
+        </CartProvider>
       </body>
     </html>
   );

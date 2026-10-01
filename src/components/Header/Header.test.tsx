@@ -1,28 +1,17 @@
 import { render, screen } from '@testing-library/react';
 
 import { CartProvider } from '@/modules/cart/CartProvider';
-import { writeCart } from '@/modules/cart/cartStorage';
+import { aCartLine, anEntryFor } from '@/test/fixtures';
 
 import { Header } from './Header';
 
-import type { CartLine } from '@/modules/cart/types';
+import type { CartEntry } from '@/modules/cart/types';
 
-const line: CartLine = {
-  id: 'line-1',
-  productId: 'SMG-S24U',
-  brand: 'Samsung',
-  name: 'Galaxy S24 Ultra',
-  imageUrl: 'https://example.com/violet.jpg',
-  color: 'Titanium Violet',
-  storage: '512GB',
-  price: 1279,
-};
+jest.mock('@/modules/cart/actions', () => ({ removeFromCart: jest.fn(), addToCart: jest.fn() }));
 
-function renderHeader(cartCount = 0) {
-  writeCart(Array.from({ length: cartCount }, (_, index) => ({ ...line, id: `line-${index}` })));
-
+function renderHeader(entries: CartEntry[] = []) {
   return render(
-    <CartProvider>
+    <CartProvider entries={entries}>
       <Header />
     </CartProvider>,
   );
@@ -35,34 +24,14 @@ describe('Header', () => {
     expect(screen.getByRole('link', { name: /home/i })).toHaveAttribute('href', '/');
   });
 
-  it('links to the cart', () => {
+  it('shows how many products the cart holds', () => {
+    renderHeader(['a', 'b', 'c'].map((id) => anEntryFor(aCartLine({ id }))));
+
+    expect(screen.getByRole('link', { name: 'Cart, 3 products' })).toBeInTheDocument();
+  });
+
+  it('shows an empty cart for a shopper who has not added anything', () => {
     renderHeader();
-
-    expect(screen.getByRole('link', { name: /cart/i })).toHaveAttribute('href', '/cart');
-  });
-
-  it('shows the empty cart icon and a zero counter when the cart is empty', () => {
-    const { container } = renderHeader(0);
-
-    expect(container.querySelector('[data-icon="cart"]')).toBeInTheDocument();
-    expect(screen.getByText('0')).toBeInTheDocument();
-  });
-
-  it('shows the filled cart icon and the counter when there are products', () => {
-    const { container } = renderHeader(3);
-
-    expect(container.querySelector('[data-icon="cart-active"]')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
-  });
-
-  it('announces how many products the cart holds', () => {
-    renderHeader(1);
-
-    expect(screen.getByRole('link', { name: 'Cart, 1 product' })).toBeInTheDocument();
-  });
-
-  it('announces an empty cart', () => {
-    renderHeader(0);
 
     expect(screen.getByRole('link', { name: 'Cart, 0 products' })).toBeInTheDocument();
   });

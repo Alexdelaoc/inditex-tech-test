@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 
 import { BackLink } from '@/components/BackLink/BackLink';
-import { getProduct, getProducts } from '@/lib/api/client';
+import { getProduct } from '@/lib/api/client';
 import { ApiError } from '@/lib/api/errors';
 import { ProductConfigurator } from '@/modules/products/ProductConfigurator/ProductConfigurator';
 import { SimilarProducts } from '@/modules/products/SimilarProducts/SimilarProducts';
@@ -10,15 +10,10 @@ import { SpecsTable } from '@/modules/products/SpecsTable/SpecsTable';
 import styles from './page.module.scss';
 
 import type { Product } from '@/lib/api/types';
+import type { Metadata } from 'next';
 
 interface ProductPageProps {
   params: Promise<{ id: string }>;
-}
-
-export async function generateStaticParams() {
-  const products = await getProducts();
-
-  return [...new Set(products.map((product) => product.id))].map((id) => ({ id }));
 }
 
 async function findProduct(id: string): Promise<Product> {
@@ -31,6 +26,13 @@ async function findProduct(id: string): Promise<Product> {
 
     throw error;
   }
+}
+
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const product = await findProduct(id);
+
+  return { title: product.name, description: product.description };
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {

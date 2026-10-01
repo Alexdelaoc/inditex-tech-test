@@ -84,13 +84,16 @@
   color: var(--color-text-subtle);
 }
 
-.delete {
+.remove {
   align-self: flex-start;
+  margin-top: auto;
+}
+
+.delete {
   padding: 0;
   font-size: var(--font-size-sm);
   text-transform: uppercase;
   color: var(--color-danger);
-  margin-top: auto;
   transition: opacity 300ms ease-out;
 
   &:hover,

@@ -1,15 +1,13 @@
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { NavigationProvider } from '@/components/Navigation/NavigationProvider';
-
 import { SearchBar } from './SearchBar';
 
 const replace = jest.fn();
 let currentParams = new URLSearchParams();
 
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: (url: string) => replace(url) }),
+  useRouter: () => ({ replace }),
   useSearchParams: () => currentParams,
 }));
 
@@ -19,13 +17,13 @@ jest.mock('@/modules/products/ResultsCount/ResultsCount', () => ({
 
 function setup() {
   const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
-  render(
-    <NavigationProvider>
-      <SearchBar products={Promise.resolve([])} />
-    </NavigationProvider>,
-  );
+  const view = render(<SearchBar products={Promise.resolve([])} />);
 
-  return user;
+  return { user, ...view };
+}
+
+function waitForDebounce() {
+  act(() => jest.runOnlyPendingTimers());
 }
 
 describe('SearchBar', () => {
@@ -39,85 +37,150 @@ describe('SearchBar', () => {
     jest.useRealTimers();
   });
 
-  it('renders a search landmark', () => {
-    setup();
+  describe('structure', () => {
+    it('is a search landmark with a labelled search box', () => {
+      setup();
 
-    expect(screen.getByRole('search')).toBeInTheDocument();
+      expect(screen.getByRole('search')).toBeInTheDocument();
+      expect(screen.getByRole('searchbox', { name: /search/i })).toBeInTheDocument();
+    });
+
+    it('submits to the home page with a search parameter, so it works without javascript', () => {
+      setup();
+
+      const form = screen.getByRole('search');
+
+      expect(form).toHaveAttribute('action', '/');
+      expect(form).toHaveAttribute('method', 'get');
+      expect(screen.getByRole('searchbox')).toHaveAttribute('name', 'search');
+      expect(screen.getByRole('button', { name: 'Search' })).toHaveAttribute('type', 'submit');
+    });
+
+    it('starts from the term already in the url', () => {
+      currentParams = new URLSearchParams('search=galaxy s24');
+      setup();
+
+      expect(screen.getByRole('searchbox')).toHaveValue('galaxy s24');
+    });
   });
 
-  it('renders a labelled text box', () => {
-    setup();
+  describe('searching while typing', () => {
+    it('waits until the shopper stops typing before searching', async () => {
+      const { user } = setup();
 
-    expect(screen.getByRole('searchbox', { name: /search/i })).toBeInTheDocument();
+      await user.type(screen.getByRole('searchbox'), 'samsung');
+
+      expect(replace).not.toHaveBeenCalled();
+
+      waitForDebounce();
+
+      expect(replace).toHaveBeenCalledTimes(1);
+      expect(replace).toHaveBeenCalledWith('/?search=samsung');
+    });
+
+    it('searches once for a burst of keystrokes, with the final term', async () => {
+      const { user } = setup();
+      const box = screen.getByRole('searchbox');
+
+      await user.type(box, 'sam');
+      await user.type(box, 'sung');
+      await user.type(box, '{backspace}{backspace}');
+      waitForDebounce();
+
+      expect(replace).toHaveBeenCalledTimes(1);
+      expect(replace).toHaveBeenCalledWith('/?search=samsu');
+    });
+
+    it('encodes characters that are not safe in a url', async () => {
+      const { user } = setup();
+
+      await user.type(screen.getByRole('searchbox'), 'galaxy s24+ & co');
+      waitForDebounce();
+
+      expect(replace).toHaveBeenCalledWith('/?search=galaxy+s24%2B+%26+co');
+    });
+
+    it('ignores surrounding whitespace', async () => {
+      const { user } = setup();
+
+      await user.type(screen.getByRole('searchbox'), '   pixel   ');
+      waitForDebounce();
+
+      expect(replace).toHaveBeenCalledWith('/?search=pixel');
+    });
+
+    it('goes back to the full catalogue when only whitespace is left', async () => {
+      currentParams = new URLSearchParams('search=pixel');
+      const { user } = setup();
+      const box = screen.getByRole('searchbox');
+
+      await user.clear(box);
+      await user.type(box, '   ');
+      waitForDebounce();
+
+      expect(replace).toHaveBeenLastCalledWith('/');
+    });
+
+    it('goes back to the full catalogue when the box is emptied', async () => {
+      currentParams = new URLSearchParams('search=pixel');
+      const { user } = setup();
+
+      await user.clear(screen.getByRole('searchbox'));
+      waitForDebounce();
+
+      expect(replace).toHaveBeenCalledWith('/');
+    });
+
+    it('drops a pending search when it is no longer on screen', async () => {
+      const { user, unmount } = setup();
+
+      await user.type(screen.getByRole('searchbox'), 'samsung');
+      unmount();
+      waitForDebounce();
+
+      expect(replace).not.toHaveBeenCalled();
+    });
   });
 
-  it('renders a submit button', () => {
-    setup();
+  describe('submitting', () => {
+    it('searches straight away, without waiting', async () => {
+      const { user } = setup();
 
-    expect(screen.getByRole('button', { name: 'Search' })).toHaveAttribute('type', 'submit');
+      await user.type(screen.getByRole('searchbox'), 'oppo{enter}');
+
+      expect(replace).toHaveBeenCalledWith('/?search=oppo');
+    });
+
+    it('does not search a second time once the wait runs out', async () => {
+      const { user } = setup();
+
+      await user.type(screen.getByRole('searchbox'), 'oppo{enter}');
+      waitForDebounce();
+
+      expect(replace).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('starts with the term that is already in the url', () => {
-    currentParams = new URLSearchParams('search=samsung');
-    setup();
+  describe('clearing', () => {
+    it('only offers to clear when there is something to clear', async () => {
+      const { user } = setup();
 
-    expect(screen.getByRole('searchbox')).toHaveValue('samsung');
-  });
+      expect(screen.queryByRole('button', { name: /clear/i })).not.toBeInTheDocument();
 
-  it('writes the term into the url once the user stops typing', async () => {
-    const user = setup();
+      await user.type(screen.getByRole('searchbox'), 'a');
 
-    await user.type(screen.getByRole('searchbox'), 'samsung');
-    expect(replace).not.toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: /clear/i })).toBeInTheDocument();
+    });
 
-    act(() => jest.runAllTimers());
+    it('empties the box and goes back to the full catalogue', async () => {
+      currentParams = new URLSearchParams('search=samsung');
+      const { user } = setup();
 
-    expect(replace).toHaveBeenCalledWith('/?search=samsung');
-  });
+      await user.click(screen.getByRole('button', { name: /clear/i }));
+      waitForDebounce();
 
-  it('drops the term from the url when the box is emptied', async () => {
-    currentParams = new URLSearchParams('search=samsung');
-    const user = setup();
-
-    await user.clear(screen.getByRole('searchbox'));
-    act(() => jest.runAllTimers());
-
-    expect(replace).toHaveBeenCalledWith('/');
-  });
-
-  it('offers no clear button while the box is empty', () => {
-    setup();
-
-    expect(screen.queryByRole('button', { name: /clear/i })).not.toBeInTheDocument();
-  });
-
-  it('empties the box and the url from the clear button', async () => {
-    currentParams = new URLSearchParams('search=samsung');
-    const user = setup();
-
-    await user.click(screen.getByRole('button', { name: /clear/i }));
-    act(() => jest.runAllTimers());
-
-    expect(screen.getByRole('searchbox')).toHaveValue('');
-    expect(replace).toHaveBeenCalledWith('/');
-  });
-
-  it('searches straight away when the form is submitted', async () => {
-    const user = setup();
-
-    await user.type(screen.getByRole('searchbox'), 'oppo');
-    await user.click(screen.getByRole('button', { name: 'Search' }));
-
-    expect(replace).toHaveBeenCalledWith('/?search=oppo');
-  });
-
-  it('submits to the home page so the search also works without javascript', () => {
-    setup();
-
-    const form = screen.getByRole('search');
-
-    expect(form).toHaveAttribute('action', '/');
-    expect(form).toHaveAttribute('method', 'get');
-    expect(screen.getByRole('searchbox')).toHaveAttribute('name', 'search');
+      expect(screen.getByRole('searchbox')).toHaveValue('');
+      expect(replace).toHaveBeenCalledWith('/');
+    });
   });
 });

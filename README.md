@@ -3,7 +3,7 @@
 Catálogo de teléfonos móviles con tres vistas: listado con buscador, ficha de producto y carrito
 de compra.
 
-Está construido con Next.js sobre el App Router y renderizado en servidor (SSR). La decisión de fondo es que la clave de la API enviada como cabecera no llegue al navegador y sea accesible para el resto de usuarios. Las páginas piden los datos mientras se renderizan en el servidor y el HTML navega al cliente con los productos ya dentro.
+Está construido con Next.js sobre el App Router y renderizado en servidor (SSR). La decisión de fondo es que la clave de la API enviada como cabecera no llegue al navegador ni quede expuesta a quien use la aplicación. Las páginas piden los datos mientras se renderizan en el servidor y el HTML navega al cliente con los productos ya dentro.
 
 ## Requisitos
 
@@ -86,7 +86,7 @@ La aplicación queda en `http://localhost:3000`, igual que con pnpm, y se para c
 
 El `Dockerfile` construye en tres etapas: la primera instala las dependencias con el lockfile congelado, la segunda ejecuta `next build` y la tercera sólo copia el resultado. Next genera esa salida en modo `standalone` (`output: 'standalone'` en `next.config.ts`), que es un `server.js` acompañado únicamente de los módulos que usa en ejecución. Así la imagen final no lleva ni las dependencias de desarrollo ni el código fuente, y el proceso corre con el usuario `node` de la imagen base en lugar de como root.
 
-La clave de la API hace falta también al construir, no sólo al ejecutar, porque las fichas se prerenderizan en el build con `generateStaticParams` y eso llama a la API. Pasarla como argumento de build (`ARG`) la dejaría grabada en el historial de la imagen, así que se entrega como secreto de BuildKit: se monta en `/run/secrets` sólo durante el paso del build y ninguna capa la conserva. No se monta como `/app/.env` a propósito, porque en modo `standalone` Next copia a la salida los `.env` que haya cargado y la clave acabaría dentro de la imagen. En ejecución, las variables llegan al contenedor desde el mismo `.env` a través de `env_file`.
+El build no llama a la API dado que todas las rutas se renderizan por petición (ver Arquitectura), así que la clave sólo hace falta al ejecutar. Llega al contenedor desde el mismo `.env` a través de `env_file` y nunca entra en la imagen: el `.dockerignore` deja fuera todos los `.env*`, lo que además importa porque en modo `standalone` Next copia a la salida los `.env` que encuentra.
 
 Si el puerto 3000 está ocupado por otro proceso o contenedor, hay que liberarlo y recrear el contenedor. Reiniciarlo no basta, porque no vuelve a enlazar el puerto:
 
@@ -96,7 +96,7 @@ docker compose up -d --force-recreate
 
 ### Arranque en frío de la API
 
-La API está desplegada en un plan gratuito que apaga el servicio cuando lleva un rato sin tráfico. La primera petición después de un tiempo parado puede tardar varios segundos en responder. Esto es intencional, ya que es el arranque en frío del backend. Con Docker se nota ya durante el build, que es el primero en llamar a la API.
+La API está desplegada en un plan gratuito que apaga el servicio cuando lleva un rato sin tráfico. La primera petición después de un tiempo parado puede tardar varios segundos en responder. Esto es intencional, ya que es el arranque en frío del backend.
 
 ## Scripts
 
@@ -118,19 +118,25 @@ Los dos modos vienen de serie con el toolchain de Next. `pnpm dev` sirve los ass
 
 ## Arquitectura
 
-Las páginas son Server Components y los componentes de cliente son hojas del árbol. El navegador recibe el HTML terminado y sólo se hidrata lo que necesita interactividad: el buscador, el configurador de la ficha, el carrito y el carrusel de productos similares.
+Las páginas son Server Components y los componentes de cliente son hojas del árbol. El navegador recibe el HTML terminado y sólo se hidrata lo que necesita interactividad: el buscador, el configurador de la ficha, el carrito y el carrusel de productos similares. Las piezas visuales (la tarjeta, los selectores de la ficha, la línea y el resumen del carrito, el enlace al carrito de la cabecera) no tienen estado: reciben los datos por props y es el componente de cliente que las usa quien los decide. En toda la aplicación no queda ningún `useEffect`.
 
 `lib/api` es el único punto que habla con el backend. Pone la cabecera `x-api-key`, convierte los fallos HTTP en un `ApiError` que arrastra el código de estado (para poder distinguir un producto inexistente de una caída del servicio) y cachea las respuestas durante una hora.
 
-El buscador escribe el término en la URL como `?search=` y el servidor devuelve la lista ya filtrada, de modo que una búsqueda se puede compartir por enlace. Va dentro de un `<form>` real y funciona sin JavaScript; el JavaScript sólo añade el filtrado según se escribe, con 300 ms de margen (debouncer) para no lanzar una petición por tecla. Bajo la cabecera hay una barra de carga que sólo aparece si la espera pasa de 150 ms, para que una respuesta rápida no produzca un flicker.
+El buscador escribe el término en la URL como `?search=` y el servidor devuelve la lista ya filtrada, de modo que una búsqueda se puede compartir por enlace. Va dentro de un `<form>` real y funciona sin JavaScript; el JavaScript sólo añade el filtrado según se escribe, con 300 ms de margen (debouncer) para no lanzar una petición por tecla. Si el buscador sale de pantalla con una búsqueda pendiente, la cancela, para que no te devuelva a la home después de haber pinchado en un producto.
 
-Las fichas de producto se prerenderizan en el build con `generateStaticParams` y se revalidan cada hora.
+Mientras una parte de la página espera datos, se muestra un esqueleto con la geometría de lo que va a llegar y una barra de carga bajo la cabecera. La barra aparece con 150 ms de retardo, resuelto en CSS, para que una respuesta rápida no produzca un flicker. La cuadrícula de la home lo hace desde el `fallback` de su `<Suspense>` y la ficha desde su propio `loading.tsx`. La ficha titula además la pestaña con el nombre del producto (`generateMetadata`).
+
+Como el layout lee la cookie del carrito, todas las rutas se renderizan por petición. Las respuestas de la API siguen cacheadas una hora, así que ese coste es de render, no de llamadas.
 
 La página arranca la petición y no la aguarda. Entrega de inmediato el documento con la cabecera y el buscador, y deja la cuadrícula dentro de un `<Suspense>`. Cuando la API contesta, el marcado de la cuadrícula viaja por la misma conexión HTTP y React lo coloca en su hueco. En casos como un arranque en frío del servidor el procesado lento de la petición se traduce en una pantalla en blanco o casi en blanco de varios segundos.
 
 El contador de resultados vive dentro del buscador, que es un componente de cliente porque escribe en la URL. Recibe la promesa en lugar del número ya resuelto y la consume con `use`, así que el formulario se pinta y se puede usar antes de que haya resultados que contar.
 
-El carrito vive en un contexto de React (`CartProvider`) montado en el layout y se persiste en `localStorage`. Lo que se lee del almacenamiento se valida campo a campo antes de usarse, así que un valor corrupto o de una versión anterior se descarta en lugar de romper la aplicación. La lectura no usa efectos: `localStorage` es un almacén externo a React y se consume con `useSyncExternalStore`, que es la herramienta que React ofrece para eso. La suscripción escucha además el evento `storage`, de modo que el carrito se mantiene sincronizado entre pestañas.
+El carrito se guarda en una cookie `httpOnly`, de modo que el servidor lo conoce al renderizar y el contador de la cabecera llega ya resuelto en el HTML. Añadir y borrar son Server Actions. Al añadir, la acción pide el producto al catálogo y comprueba que la combinación existe antes de escribir nada, porque lo que llega de un formulario no es de fiar. La cookie guarda sólo producto, color y almacenamiento, como tuplas codificadas en base64url (la codificación de URL que aplica Next inflaría un JSON al doble), se lee de forma defensiva y nunca pasa de los 4 KB que garantizan los navegadores. El nombre, el precio y la imagen de cada línea se resuelven en el servidor contra el catálogo.
+
+En el cliente, `CartProvider` sigue siendo un contexto de React, como pide el enunciado, y comparte el estado optimista (`useOptimistic`) entre la lista y el contador: al borrar, la línea desaparece al instante y el servidor confirma después. El configurador usa `useActionState` para mostrar por qué no se ha podido añadir un producto, y `useFormStatus` para bloquear el botón mientras el carrito responde.
+
+Qué combinaciones de color y almacenamiento ofrece un producto, y qué precio e imagen les corresponden, lo decide un único módulo, `modules/products/configuration.ts`. Lo usan el configurador para pintar, la acción para validar y el carrito para resolver sus líneas, y es también el dueño de los nombres de campo del formulario, para que la pantalla y el servidor no puedan desalinearse.
 
 `app/error.tsx` y `app/not-found.tsx` recogen los fallos. El de error muestra un mensaje genérico en lugar del original, con un test que lo vigila: un 401 de la API no debería acabar enseñando "Invalid API key" en pantalla.
 
@@ -139,14 +145,15 @@ El carrito vive en un contexto de React (`CartProvider`) montado en el layout y 
 ```
 src/
 ├── app/          Rutas del App Router: layouts, páginas y límites de error
-├── components/   Interfaz transversal (Header, Icon, Navigation, BackLink)
+├── components/   Interfaz transversal (Header, Icon, BackLink, LoadingBar, Placeholder)
 ├── lib/api/      Cliente de la API, tipos del contrato y errores
 ├── modules/      Código agrupado por dominio (products, cart)
 ├── styles/       Tokens en variables CSS, breakpoints, reset y estilos globales
+├── test/         Fixtures y dobles compartidos por las pruebas
 └── types/        Declaraciones de tipos ambientales
 ```
 
-El criterio para separar `components/` de `modules/` no es si algo es un componente, sino si sabe qué es un producto o un carrito. Dentro de cada módulo conviven el componente, sus estilos y sus pruebas.
+El criterio para separar `components/` de `modules/` no es si algo es un componente, sino si sabe qué es un producto o un carrito. Dentro de cada módulo conviven el componente, sus estilos y sus pruebas. El vocabulario del dominio (qué es una elección y qué es una configuración) está definido en `CONTEXT.md`.
 
 ## Diseño y accesibilidad
 
@@ -158,7 +165,7 @@ Los @keyframes viven en `styles/_animations.scss` como mixin y lo incluye cada m
 
 ## Pruebas
 
-93 pruebas con Jest y React Testing Library, escritas contra el comportamiento visible. Cubren el cliente de la API, el buscador, la cuadrícula, la ficha, el carrito y su persistencia.
+190 pruebas con Jest y React Testing Library, escritas contra el comportamiento visible y pensando en el peor caso: la API devolviendo 401, 500 o cayéndose, productos sin colores o sin almacenamiento, formularios manipulados, cookies corruptas o al límite de tamaño, la misma configuración añadida dos veces o una búsqueda pendiente cuando el buscador ya no está en pantalla. Cubren el cliente de la API, el buscador, la ficha con sus estados de carga y error, el módulo de configuración y el carrito de punta a punta: la cookie, las Server Actions y el estado optimista. Las del servidor corren en el entorno de Node y las de interfaz en jsdom.
 
 ```bash
 pnpm test
@@ -180,6 +187,10 @@ El despliegue no pasa por Docker. Vercel construye con su propio builder, que no
   problemática por ceñirme al diseño, pero en otra ocasión podría haber "deduplicado" elementos con IDs repetidos a pesar de
   la complicación que conllevaría en cuanto a diseño del componente (pedir de más y recortar, añadir paginación a pesar de esto
   si se pidiera, etcétera).
+- Si el carrito rechaza un producto (la combinación ya no existe, el carrito está lleno o la API no responde), el motivo
+  aparece bajo el botón de añadir. Ese aviso no está en el diseño; es lo mínimo para que el rechazo no sea silencioso.
+- Borrar del carrito necesita JavaScript. El borrado es optimista, y para eso la acción del formulario tiene que pasar por
+  el cliente; sin JavaScript no hay forma de tener las dos cosas en el mismo formulario.
 
 ## Stack
 

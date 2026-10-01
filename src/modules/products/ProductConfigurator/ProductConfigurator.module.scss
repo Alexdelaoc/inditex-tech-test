@@ -135,8 +135,11 @@
 }
 
 .colorOptions {
+  position: relative;
   display: flex;
+  align-items: flex-start;
   gap: var(--spacing-md);
+  min-height: 3.0625rem;
 }
 
 .color {
@@ -159,24 +162,23 @@
   height: 1.25rem;
 }
 
-.colorPicker {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  min-height: 3.0625rem;
-}
-
 .colorName {
-  margin: 0;
-  transition: opacity var(--duration-fast) var(--easing-standard);
-
-  &:empty {
-    opacity: 0;
-  }
-
+  position: absolute;
+  top: calc(1.5rem + var(--spacing-xs));
+  left: 0;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-light);
   line-height: 1.25;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--easing-standard);
+
+  .color:hover &,
+  .colorOptions:not(:has(.color:hover)) .color:has(:focus-visible) &,
+  .colorOptions:not(:has(.color:hover, :focus-visible)) .color:has(:checked) & {
+    opacity: 1;
+  }
 }
 
 .addToCart {
@@ -197,4 +199,52 @@
     color: var(--color-text-disabled);
     cursor: not-allowed;
   }
+}
+
+.namePlaceholder {
+  width: 70%;
+  height: 1.5rem;
+
+  @include breakpoints.from('lg') {
+    height: 1.8rem;
+  }
+}
+
+.pricePlaceholder {
+  width: 6rem;
+  height: 1.05rem;
+
+  @include breakpoints.from('lg') {
+    height: 1.5rem;
+  }
+}
+
+.legendPlaceholder {
+  width: 60%;
+  height: 0.9375rem;
+
+  @include breakpoints.from('lg') {
+    height: 1.09375rem;
+  }
+}
+
+.storagePlaceholder {
+  height: 4rem;
+}
+
+.swatchesPlaceholder {
+  width: 6.5rem;
+  height: 1.5rem;
+}
+
+.addToCartPlaceholder {
+  height: 3.5rem;
+}
+
+.error {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-light);
+  line-height: 1.25;
+  color: var(--color-danger);
 }

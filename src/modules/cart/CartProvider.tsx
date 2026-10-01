@@ -1,44 +1,47 @@
 'use client';
 
-import { createContext, use, useMemo, useSyncExternalStore } from 'react';
+import { createContext, use, useOptimistic } from 'react';
 
-import { addLine, getServerSnapshot, getSnapshot, removeLine, subscribe } from './cartStore';
+import { removeFromCart } from './actions';
 
-import type { NewCartLine } from './cartStore';
-import type { CartLine } from './types';
+import type { CartEntry } from './types';
 import type { ReactNode } from 'react';
 
 interface CartValue {
-  lines: CartLine[];
+  entries: CartEntry[];
   count: number;
-  total: number;
-  addLine: (line: NewCartLine) => void;
-  removeLine: (id: string) => void;
+  removeLine: (lineId: string) => Promise<void>;
 }
 
 export const CartContext = createContext<CartValue>({
-  lines: [],
+  entries: [],
   count: 0,
-  total: 0,
-  addLine: () => {},
-  removeLine: () => {},
+  removeLine: async () => {},
 });
 
-export function CartProvider({ children }: { children: ReactNode }) {
-  const lines = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+interface CartProviderProps {
+  entries: CartEntry[];
+  children: ReactNode;
+}
 
-  const value = useMemo(
-    () => ({
-      lines,
-      count: lines.length,
-      total: lines.reduce((sum, line) => sum + line.price, 0),
-      addLine,
-      removeLine,
-    }),
-    [lines],
+export function CartProvider({ entries, children }: CartProviderProps) {
+  const [optimisticEntries, removeOptimistically] = useOptimistic(
+    entries,
+    (current, removedId: string) => current.filter((entry) => entry.id !== removedId),
   );
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+  async function removeLine(lineId: string) {
+    removeOptimistically(lineId);
+    await removeFromCart(lineId);
+  }
+
+  return (
+    <CartContext.Provider
+      value={{ entries: optimisticEntries, count: optimisticEntries.length, removeLine }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
 }
 
 export function useCart() {

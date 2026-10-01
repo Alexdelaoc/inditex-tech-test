@@ -1,135 +1,61 @@
 'use client';
 
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useActionState, useState } from 'react';
 
-import { useCart } from '@/modules/cart/CartProvider';
+import { addToCart } from '@/modules/cart/actions';
+import { configure, preview } from '@/modules/products/configuration';
+
+import { AddToCartButton } from './AddToCartButton';
+import { ColorSelector } from './ColorSelector';
+import { ProductGallery } from './ProductGallery';
+import { StorageSelector } from './StorageSelector';
 
 import styles from './ProductConfigurator.module.scss';
 
-import type { ColorOption, Product, StorageOption } from '@/lib/api/types';
+import type { Product } from '@/lib/api/types';
+import type { Choice } from '@/modules/products/configuration';
 
-const SIZES = '(min-width: 64rem) 510px, (min-width: 48rem) 337px, 100vw';
+function keepChoiceOnReset(form: HTMLFormElement) {
+  const keep = (event: Event) => event.preventDefault();
+
+  form.addEventListener('reset', keep);
+
+  return () => form.removeEventListener('reset', keep);
+}
 
 export function ProductConfigurator({ product }: { product: Product }) {
-  const { addLine } = useCart();
-  const router = useRouter();
-  const [storage, setStorage] = useState<StorageOption>();
-  const [color, setColor] = useState<ColorOption>();
-  const [previewedColor, setPreviewedColor] = useState<ColorOption>();
-  const shownColor = color ?? product.colorOptions[0];
-  const namedColor = previewedColor ?? color;
-
-  function addToCart() {
-    if (!storage || !color) {
-      return;
-    }
-
-    addLine({
-      productId: product.id,
-      brand: product.brand,
-      name: product.name,
-      imageUrl: color.imageUrl,
-      color: color.name,
-      storage: storage.capacity,
-      price: storage.price,
-    });
-
-    router.push('/cart');
-  }
+  const [choice, setChoice] = useState<Choice>({});
+  const [state, formAction] = useActionState(addToCart.bind(null, product.id), { error: null });
+  const { price, isStartingPrice, imageUrl } = preview(product, choice);
 
   return (
     <div className={styles.detail}>
-      <div className={styles.figure}>
-        {product.colorOptions.map((option, index) => {
-          const shown = option.name === shownColor?.name;
+      <ProductGallery name={product.name} options={product.colorOptions} shownImageUrl={imageUrl} />
 
-          return (
-            <Image
-              key={option.name}
-              src={option.imageUrl}
-              alt={shown ? product.name : ''}
-              fill
-              sizes={SIZES}
-              className={styles.image}
-              data-shown={shown}
-              priority={index === 0}
-            />
-          );
-        })}
-      </div>
-
-      <div className={styles.info}>
+      <form ref={keepChoiceOnReset} action={formAction} className={styles.info}>
         <div className={styles.identity}>
           <h1 className={styles.name}>{product.name}</h1>
-          <p className={styles.price}>
-            {storage ? `${storage.price} EUR` : `From ${product.basePrice} EUR`}
-          </p>
+          <p className={styles.price}>{isStartingPrice ? `From ${price} EUR` : `${price} EUR`}</p>
         </div>
 
-        <div role="group" aria-labelledby="storage-label" className={styles.group}>
-          <p id="storage-label" className={styles.legend}>
-            Storage. How much space do you need?
-          </p>
-          <div className={styles.storageOptions}>
-            {product.storageOptions.map((option) => (
-              <label key={option.capacity} className={styles.storage}>
-                <input
-                  type="radio"
-                  name="storage"
-                  value={option.capacity}
-                  className="visually-hidden"
-                  checked={storage?.capacity === option.capacity}
-                  onChange={() => setStorage(option)}
-                />
-                <span>{option.capacity}</span>
-              </label>
-            ))}
-          </div>
-        </div>
+        <StorageSelector
+          options={product.storageOptions}
+          selected={choice.storage}
+          onSelect={(storage) => setChoice((current) => ({ ...current, storage }))}
+        />
+        <ColorSelector
+          options={product.colorOptions}
+          selected={choice.color}
+          onSelect={(color) => setChoice((current) => ({ ...current, color }))}
+        />
+        <AddToCartButton disabled={configure(product, choice) === null} />
 
-        <div role="group" aria-labelledby="color-label" className={styles.group}>
-          <p id="color-label" className={styles.legend}>
-            Colour. Pick your favourite.
+        {state.error && (
+          <p role="alert" className={styles.error}>
+            {state.error}
           </p>
-          <div className={styles.colorPicker}>
-            <div className={styles.colorOptions}>
-              {product.colorOptions.map((option) => (
-                <label
-                  key={option.name}
-                  className={styles.color}
-                  onMouseEnter={() => setPreviewedColor(option)}
-                  onMouseLeave={() => setPreviewedColor(undefined)}
-                  onFocus={() => setPreviewedColor(option)}
-                  onBlur={() => setPreviewedColor(undefined)}
-                >
-                  <input
-                    type="radio"
-                    name="color"
-                    value={option.name}
-                    aria-label={option.name}
-                    className="visually-hidden"
-                    checked={color?.name === option.name}
-                    onChange={() => setColor(option)}
-                  />
-                  <span className={styles.swatch} style={{ backgroundColor: option.hexCode }} />
-                </label>
-              ))}
-            </div>
-            <p className={styles.colorName}>{namedColor?.name}</p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className={styles.addToCart}
-          disabled={!storage || !color}
-          onClick={addToCart}
-        >
-          Add
-        </button>
-      </div>
+        )}
+      </form>
     </div>
   );
 }
