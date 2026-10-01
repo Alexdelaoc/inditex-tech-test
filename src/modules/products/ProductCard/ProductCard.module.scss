@@ -1,7 +1,4 @@
-@use 'animations' as animations;
 @use 'breakpoints' as breakpoints;
-
-@include animations.pulse;
 
 .card,
 .skeleton {
@@ -100,23 +97,17 @@
   white-space: nowrap;
 }
 
-.block {
-  display: block;
-  background-color: var(--color-surface-disabled);
-  animation: pulse 1.1s var(--easing-standard) infinite alternate;
+.brandPlaceholder {
+  width: 4rem;
+  height: 0.75rem;
+}
 
-  &[data-line='brand'] {
-    width: 4rem;
-    height: 0.75rem;
-  }
+.namePlaceholder {
+  width: 65%;
+  height: 0.9375rem;
+}
 
-  &[data-line='name'] {
-    width: 65%;
-    height: 0.9375rem;
-  }
-
-  &[data-line='price'] {
-    width: 3.5rem;
-    height: 0.9375rem;
-  }
+.pricePlaceholder {
+  width: 3.5rem;
+  height: 0.9375rem;
 }

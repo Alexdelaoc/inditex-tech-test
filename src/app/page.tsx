@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 
+import { LoadingBar } from '@/components/LoadingBar/LoadingBar';
 import { getProducts } from '@/lib/api/client';
 import { ProductGridSkeleton } from '@/modules/products/ProductGrid/ProductGridSkeleton';
 import { ProductResults } from '@/modules/products/ProductResults/ProductResults';
@@ -21,7 +22,15 @@ export default async function HomePage({ searchParams }: HomePageProps) {
     <div className={styles.page}>
       <SearchBar products={products} />
 
-      <Suspense key={search ?? ''} fallback={<ProductGridSkeleton />}>
+      <Suspense
+        key={search ?? ''}
+        fallback={
+          <>
+            <LoadingBar />
+            <ProductGridSkeleton />
+          </>
+        }
+      >
         <ProductResults products={products} />
       </Suspense>
     </div>

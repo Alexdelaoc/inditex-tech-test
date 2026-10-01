@@ -1,13 +1,6 @@
 services:
   app:
-    build:
-      context: .
-      secrets:
-        - env
+    build: .
     env_file: .env
     ports:
       - '3000:3000'
-
-secrets:
-  env:
-    file: .env

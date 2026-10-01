@@ -1,0 +1,39 @@
+@use 'sass:math';
+@use 'animations' as animations;
+
+@include animations.fade-in;
+
+$bar-fraction: 0.25;
+
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(math.div(100%, $bar-fraction));
+  }
+}
+
+.track {
+  position: fixed;
+  top: var(--header-height);
+  inset-inline: 0;
+  z-index: 2;
+  height: 1px;
+  overflow: hidden;
+  pointer-events: none;
+  animation: fade-in var(--duration-fast) var(--easing-standard) 150ms both;
+}
+
+.bar {
+  width: $bar-fraction * 100%;
+  height: 100%;
+  background-color: var(--color-black);
+  animation: sweep 1.1s var(--easing-standard) infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    width: 100%;
+    animation: none;
+  }
+}

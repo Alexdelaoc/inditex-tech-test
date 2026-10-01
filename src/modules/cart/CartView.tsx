@@ -1,71 +1,32 @@
 'use client';
 
-import Image from 'next/image';
-import Link from 'next/link';
-
+import { CartLineItem } from './CartLineItem';
 import { useCart } from './CartProvider';
+import { CartSummary } from './CartSummary';
 
 import styles from './CartView.module.scss';
 
-const SIZES = '(min-width: 48rem) 232px, 96px';
+import type { CartLine } from './types';
 
-export function CartView() {
-  const { lines, count, total, removeLine } = useCart();
+export function CartView({ lines }: { lines: CartLine[] }) {
+  const { entries, removeLine } = useCart();
+  const remaining = new Set(entries.map((entry) => entry.id));
+  const shown = lines.filter((line) => remaining.has(line.id));
+  const total = shown.reduce((sum, line) => sum + line.price, 0);
 
   return (
     <>
-      <h1 className={styles.title}>Cart ({count})</h1>
+      <h1 className={styles.title}>Cart ({shown.length})</h1>
 
-      {count > 0 && (
+      {shown.length > 0 && (
         <ul className={styles.lines}>
-          {lines.map((line) => (
-            <li key={line.id} className={styles.line}>
-              <span className={styles.figure}>
-                <Image src={line.imageUrl} alt="" fill sizes={SIZES} className={styles.image} />
-              </span>
-
-              <div className={styles.info}>
-                <div className={styles.identity}>
-                  <p className={styles.name}>{line.name}</p>
-                  <p className={styles.variant}>
-                    {line.color} | {line.storage}
-                  </p>
-                </div>
-
-                <p className={styles.price}>{line.price} EUR</p>
-
-                <button
-                  type="button"
-                  aria-label={`Delete ${line.name}, ${line.color}, ${line.storage}`}
-                  className={styles.delete}
-                  onClick={() => removeLine(line.id)}
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
+          {shown.map((line) => (
+            <CartLineItem key={line.id} line={line} removeAction={removeLine.bind(null, line.id)} />
           ))}
         </ul>
       )}
 
-      <div className={styles.footer}>
-        {count > 0 && (
-          <p className={styles.total}>
-            <span>Total</span>
-            <span>{total} EUR</span>
-          </p>
-        )}
-
-        <Link href="/" className={styles.continue}>
-          Continue shopping
-        </Link>
-
-        {count > 0 && (
-          <button type="button" className={styles.pay} disabled>
-            Pay
-          </button>
-        )}
-      </div>
+      <CartSummary count={shown.length} total={total} />
     </>
   );
 }

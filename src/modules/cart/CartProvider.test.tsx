@@ -1,117 +1,148 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { aCartLine, anEntryFor } from '@/test/fixtures';
+
+import { removeFromCart } from './actions';
 import { CartProvider, useCart } from './CartProvider';
-import { STORAGE_KEY } from './cartStorage';
 
-import type { NewCartLine } from './cartStore';
+import type { CartEntry } from './types';
 
-const galaxy: NewCartLine = {
-  productId: 'SMG-S24U',
-  brand: 'Samsung',
-  name: 'Galaxy S24 Ultra',
-  imageUrl: 'https://example.com/violet.jpg',
-  color: 'Titanium Violet',
-  storage: '512GB',
-  price: 1279,
-};
+jest.mock('./actions', () => ({ removeFromCart: jest.fn(), addToCart: jest.fn() }));
 
-const pixel: NewCartLine = {
-  productId: 'GPX-8A',
-  brand: 'Google',
-  name: 'Pixel 8a',
-  imageUrl: 'https://example.com/pixel.jpg',
-  color: 'Obsidian',
-  storage: '128GB',
-  price: 459,
-};
+const mockedRemove = jest.mocked(removeFromCart);
 
-function Consumer() {
-  const { lines, count, total, addLine, removeLine } = useCart();
+const a = anEntryFor(aCartLine({ id: 'a' }));
+const b = anEntryFor(aCartLine({ id: 'b' }));
+const c = anEntryFor(aCartLine({ id: 'c' }));
+
+function Cart() {
+  const { count, entries, removeLine } = useCart();
 
   return (
-    <div>
-      <p>
-        {count} lines, {total} eur
-      </p>
-      <button type="button" onClick={() => addLine(galaxy)}>
-        add galaxy
-      </button>
-      <button type="button" onClick={() => addLine(pixel)}>
-        add pixel
-      </button>
-      {lines.map((line) => (
-        <button key={line.id} type="button" onClick={() => removeLine(line.id)}>
-          remove {line.name}
-        </button>
+    <>
+      <p>{count} in the cart</p>
+      {entries.map((entry) => (
+        <form key={entry.id} action={removeLine.bind(null, entry.id)}>
+          <button type="submit">Remove {entry.id}</button>
+        </form>
       ))}
-    </div>
+    </>
   );
 }
 
-function setup() {
+const pending: Array<() => void> = [];
+
+function deferred() {
+  let resolve!: () => void;
+  let reject!: (error: Error) => void;
+  const promise = new Promise<void>((done, fail) => {
+    resolve = done;
+    reject = fail;
+  });
+  pending.push(resolve);
+
+  return { promise, resolve, reject };
+}
+
+function setup(entries: CartEntry[]) {
   const user = userEvent.setup();
-  render(
-    <CartProvider>
-      <Consumer />
+  const view = render(
+    <CartProvider entries={entries}>
+      <Cart />
     </CartProvider>,
   );
 
-  return user;
+  const serverSends = (next: CartEntry[]) =>
+    view.rerender(
+      <CartProvider entries={next}>
+        <Cart />
+      </CartProvider>,
+    );
+
+  return { user, serverSends };
 }
 
 describe('CartProvider', () => {
   beforeEach(() => {
-    localStorage.clear();
+    mockedRemove.mockReset();
   });
 
-  it('starts with an empty cart', () => {
-    setup();
-
-    expect(screen.getByText('0 lines, 0 eur')).toBeInTheDocument();
+  afterEach(async () => {
+    await act(async () => pending.splice(0).forEach((resolve) => resolve()));
   });
 
-  it('counts the lines and adds up their prices', async () => {
-    const user = setup();
+  it('counts the lines the server says the cart holds', () => {
+    setup([a, b, c]);
 
-    await user.click(screen.getByRole('button', { name: 'add galaxy' }));
-    await user.click(screen.getByRole('button', { name: 'add pixel' }));
-
-    expect(screen.getByText('2 lines, 1738 eur')).toBeInTheDocument();
+    expect(screen.getByText('3 in the cart')).toBeInTheDocument();
   });
 
-  it('keeps a repeated configuration as its own line', async () => {
-    const user = setup();
+  it('follows the cart the server sends after any change', () => {
+    const { serverSends } = setup([a]);
 
-    await user.click(screen.getByRole('button', { name: 'add galaxy' }));
-    await user.click(screen.getByRole('button', { name: 'add galaxy' }));
+    serverSends([a, b]);
 
-    expect(screen.getByText('2 lines, 2558 eur')).toBeInTheDocument();
+    expect(screen.getByText('2 in the cart')).toBeInTheDocument();
   });
 
-  it('removes one line without touching its twin', async () => {
-    const user = setup();
+  describe('removing a line', () => {
+    it('asks the server to remove it', async () => {
+      mockedRemove.mockResolvedValue();
+      const { user } = setup([a, b]);
 
-    await user.click(screen.getByRole('button', { name: 'add galaxy' }));
-    await user.click(screen.getByRole('button', { name: 'add galaxy' }));
-    await user.click(screen.getAllByRole('button', { name: /remove/i })[0]!);
+      await user.click(screen.getByRole('button', { name: 'Remove b' }));
 
-    expect(screen.getByText('1 lines, 1279 eur')).toBeInTheDocument();
-  });
+      expect(mockedRemove).toHaveBeenCalledWith('b');
+    });
 
-  it('restores what was left in the browser', () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([{ ...galaxy, id: 'kept' }]));
+    it('takes it out straight away, without waiting for the server', async () => {
+      mockedRemove.mockReturnValue(deferred().promise);
+      const { user } = setup([a, b, c]);
 
-    setup();
+      await user.click(screen.getByRole('button', { name: 'Remove b' }));
 
-    expect(screen.getByText('1 lines, 1279 eur')).toBeInTheDocument();
-  });
+      expect(screen.getByText('2 in the cart')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Remove b' })).not.toBeInTheDocument();
+    });
 
-  it('remembers the cart between visits', async () => {
-    const user = setup();
+    it('settles on what the server says once it answers', async () => {
+      const removal = deferred();
+      mockedRemove.mockReturnValue(removal.promise);
+      const { user, serverSends } = setup([a, b, c]);
 
-    await user.click(screen.getByRole('button', { name: 'add galaxy' }));
+      await user.click(screen.getByRole('button', { name: 'Remove b' }));
+      serverSends([a, c]);
+      await act(async () => removal.resolve());
 
-    expect(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')).toHaveLength(1);
+      expect(screen.getByText('2 in the cart')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Remove b' })).not.toBeInTheDocument();
+    });
+
+    it('puts the line back if the server still has it once the removal settles', async () => {
+      const removal = deferred();
+      mockedRemove.mockReturnValue(removal.promise);
+      const { user } = setup([a, b]);
+
+      await user.click(screen.getByRole('button', { name: 'Remove b' }));
+      await act(async () => removal.resolve());
+
+      expect(screen.getByText('2 in the cart')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Remove b' })).toBeInTheDocument();
+    });
+
+    it('puts the line back when the server could not remove it', async () => {
+      const removal = deferred();
+      mockedRemove.mockReturnValue(removal.promise);
+      const { user } = setup([a, b]);
+
+      await user.click(screen.getByRole('button', { name: 'Remove b' }));
+      expect(screen.getByText('1 in the cart')).toBeInTheDocument();
+
+      await act(async () => removal.reject(new Error('fetch failed')));
+
+      expect(screen.getByText('2 in the cart')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Remove b' })).toBeInTheDocument();
+    });
   });
 });

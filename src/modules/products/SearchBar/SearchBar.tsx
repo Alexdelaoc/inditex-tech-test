@@ -1,10 +1,9 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
-import { Suspense, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useRef, useState } from 'react';
 
 import { Icon } from '@/components/Icon/Icon';
-import { useNavigation } from '@/components/Navigation/NavigationProvider';
 import { ResultsCount } from '@/modules/products/ResultsCount/ResultsCount';
 
 import styles from './SearchBar.module.scss';
@@ -25,27 +24,38 @@ function hrefFor(term: string) {
 }
 
 export function SearchBar({ products }: SearchBarProps) {
-  const { navigate } = useNavigation();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const termInUrl = searchParams.get('search') ?? '';
   const [term, setTerm] = useState(termInUrl);
   const pendingSearch = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const cancelPendingSearchOnUnmount = useCallback(
+    () => () => clearTimeout(pendingSearch.current),
+    [],
+  );
 
   function search(next: string) {
     clearTimeout(pendingSearch.current);
     setTerm(next);
-    pendingSearch.current = setTimeout(() => navigate(hrefFor(next)), DEBOUNCE_MS);
+    pendingSearch.current = setTimeout(() => router.replace(hrefFor(next)), DEBOUNCE_MS);
   }
 
   function handleSubmit(event: SyntheticEvent) {
     event.preventDefault();
     clearTimeout(pendingSearch.current);
-    navigate(hrefFor(term));
+    router.replace(hrefFor(term));
   }
 
   return (
     <div className={styles.searchBar}>
-      <form role="search" action="/" method="get" className={styles.form} onSubmit={handleSubmit}>
+      <form
+        ref={cancelPendingSearchOnUnmount}
+        role="search"
+        action="/"
+        method="get"
+        className={styles.form}
+        onSubmit={handleSubmit}
+      >
         <label htmlFor="product-search" className="visually-hidden">
           Search for a smartphone
         </label>

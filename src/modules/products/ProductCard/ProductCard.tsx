@@ -1,8 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { LinkProgress } from '@/components/Navigation/LinkProgress';
-
 import styles from './ProductCard.module.scss';
 
 import type { ProductListItem } from '@/lib/api/types';
@@ -17,8 +15,6 @@ interface ProductCardProps {
 export function ProductCard({ product, priority = false }: ProductCardProps) {
   return (
     <Link href={`/product/${encodeURIComponent(product.id)}`} className={styles.card}>
-      <LinkProgress />
-
       <span className={styles.figure}>
         <Image
           src={product.imageUrl}
